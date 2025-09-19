@@ -4,4 +4,5 @@ import { v } from "convex/values";
 export const transactions = defineTable({
   paymentId: v.string(),
   amount: v.float64(),
+  orderId: v.string(),
 });

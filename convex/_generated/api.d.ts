@@ -13,7 +13,10 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as auth from "../auth.js";
 import type * as events from "../events.js";
+import type * as http from "../http.js";
+import type * as razorpay from "../razorpay.js";
 import type * as storage from "../storage.js";
 import type * as students from "../students.js";
 import type * as tables_events from "../tables/events.js";
@@ -32,7 +35,10 @@ import type * as transactions from "../transactions.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
   events: typeof events;
+  http: typeof http;
+  razorpay: typeof razorpay;
   storage: typeof storage;
   students: typeof students;
   "tables/events": typeof tables_events;

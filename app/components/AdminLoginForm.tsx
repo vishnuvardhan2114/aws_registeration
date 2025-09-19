@@ -8,7 +8,7 @@ import { Input } from '@/app/components/ui/input'
 import { Label } from '@/app/components/ui/label'
 
 interface AdminLoginFormProps {
-  onSubmit: (formData: { email: string; password: string }) => void
+  onSubmit: (formData: FormData) => void
   isLoading?: boolean
 }
 
@@ -16,7 +16,8 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    flow: 'signIn'
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,10 +28,9 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
-    // Add button animation
+    // Animate button (optional)
     const button = e.currentTarget.querySelector('button[type="submit"]')
     if (button) {
       gsap.to(button, {
@@ -42,13 +42,23 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
       })
     }
     
-    onSubmit(formData)
+    // Create FormData with current state values
+    const submitFormData = new FormData()
+    submitFormData.append('email', formData.email)
+    submitFormData.append('password', formData.password)
+    submitFormData.append('flow', formData.flow)
+    
+    console.log('FormData entries:')
+    console.log('Email:', formData.email)
+    console.log('Password:', formData.password)
+    console.log("Flow:", formData.flow)
+    
+    // Pass FormData to parent
+    onSubmit(submitFormData)
   }
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
-    
-    // Animate the eye icon
     const eyeIcon = document.querySelector('.eye-icon')
     if (eyeIcon) {
       gsap.to(eyeIcon, {
@@ -125,7 +135,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
           </div>
         </div>
 
-
+        <Input name="flow" value={formData.flow} type="hidden" />
         {/* Login Button */}
         <Button
           type="submit"

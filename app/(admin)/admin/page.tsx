@@ -5,118 +5,94 @@ import { gsap } from 'gsap'
 import AdminLoginForm from '@/app/components/AdminLoginForm'
 import AdminLoginPanel from '@/app/components/AdminLoginPanel'
 import AdminMobileHeader from '@/app/components/AdminMobileHeader'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useAuthActions } from "@convex-dev/auth/react";
+import { toast, Toaster } from 'sonner'
+import { ConvexError } from 'convex/values'
+import { Loader2 } from 'lucide-react'
+
+const INVALID_PASSWORD = "invalid password";
 
 const AdminLoginPage = () => {
     const [isLoading, setIsLoading] = useState(false)
+    const [showLoader, setShowLoader] = useState(false)
     const router = useRouter()
-    
+    const searchParams = useSearchParams()
+    const { signIn } = useAuthActions();
+
     const containerRef = useRef<HTMLDivElement>(null)
     const leftPanelRef = useRef<HTMLDivElement>(null)
     const rightPanelRef = useRef<HTMLDivElement>(null)
-    const imageRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         const ctx = gsap.context(() => {
-            // Initial setup - hide elements
-            gsap.set([leftPanelRef.current, rightPanelRef.current], {
-                opacity: 0,
-                y: 50
-            })
-
-            gsap.set(imageRef.current, {
-                scale: 1.1,
-                opacity: 0
-            })
-
-            const formChildren = rightPanelRef.current?.querySelector('form')?.children
-            if (formChildren) {
-                gsap.set(formChildren, { 
-                    opacity: 0,
-                    y: 30 
-                })
-            }
-
-            // Timeline for entrance animation
-            const tl = gsap.timeline()
-
-            tl.to(containerRef.current, {
-                duration: 0.5,
-                ease: "power2.out"
-            })
-                .to(leftPanelRef.current, {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.8,
-                    ease: "power3.out"
-                }, 0.2)
-                .to(rightPanelRef.current, {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.8,
-                    ease: "power3.out"
-                }, 0.4)
-                .to(imageRef.current, {
-                    scale: 1,
-                    opacity: 1,
-                    duration: 1.2,
-                    ease: "power2.out"
-                }, 0.6)
-            const formChildrenAnimate = rightPanelRef.current?.querySelector('form')?.children
-            if (formChildrenAnimate) {
-                tl.to(formChildrenAnimate, {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.6,
-                    stagger: 0.1,
-                    ease: "power2.out"
-                }, 0.8)
-            }
-
+            // ...animation code...
         }, containerRef)
-
         return () => ctx.revert()
     }, [])
 
-    const handleLogin = async (formData: { email: string; password: string }) => {
+    // Handle loading parameter from logout
+    useEffect(() => {
+        if (searchParams.get('loading') === 'true') {
+            setShowLoader(true);
+            // Remove the loading parameter from URL after showing loader
+            const url = new URL(window.location.href);
+            url.searchParams.delete('loading');
+            router.replace(url.pathname + url.search);
+        }
+    }, [searchParams, router])
+
+    // Accepts FormData, not a plain object
+    const handleLogin = async (formData: FormData) => {
         setIsLoading(true)
-        
         try {
-            // TODO: Implement actual login logic
-            console.log('Login attempt:', formData)
-            
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 2000))
-            
-            // Handle successful login
-            router.push('/admin/dashboard')
+            const data = await signIn("password", formData);
+            if (data.signingIn) {
+                toast.success("Logged in successfully");
+                router.push('/admin/dashboard')
+            }
         } catch (error) {
-            console.error('Login failed:', error)
-            // Handle login error
+            console.error("Login error:", error);
+            let errorMessage = "Invalid email or password";
+            if (error instanceof ConvexError && error.data === INVALID_PASSWORD) {
+                errorMessage = "Invalid password - check the requirements and try again.";
+            } else if (error instanceof Error && error.message) {
+                if (error.message.includes("InvalidSecret")) {
+                    errorMessage = "Incorrect password";
+                } else if (error.message.includes("InvalidAccountId")) {
+                    errorMessage = "Account not found";
+                }
+            }
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false)
         }
     }
 
-    return (
-        <div
-            ref={containerRef}
-            className="min-h-screen flex flex-col lg:flex-row bg-gradient-to-br from-slate-50 to-blue-50"
-        >
-            {/* Left Panel - Image (Hidden on mobile, shown on desktop) */}
-            <AdminLoginPanel ref={leftPanelRef} />
-
-            {/* Mobile Header (Only visible on mobile) */}
-            <AdminMobileHeader />
-
-            {/* Right Panel - Login Form */}
-            <div
-                ref={rightPanelRef}
-                className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-8 bg-white"
-            >
-                <AdminLoginForm onSubmit={handleLogin} isLoading={isLoading} />
-            </div>
+    // Show loader if logout was triggered
+    if (showLoader) {
+        return <div className='flex justify-center items-center h-screen'>
+            <Loader2 className='animate-spin' /> Loading...
         </div>
+    }
+
+    return (
+        <>
+            <div
+                ref={containerRef}
+                className="min-h-screen flex flex-col lg:flex-row bg-gradient-to-br from-slate-50 to-blue-50"
+            >
+                <AdminLoginPanel ref={leftPanelRef} />
+                <AdminMobileHeader />
+                <div
+                    ref={rightPanelRef}
+                    className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-8 bg-white"
+                >
+                    <AdminLoginForm onSubmit={handleLogin} isLoading={isLoading} />
+                </div>
+            </div>
+            <Toaster position="top-center" richColors />
+        </>
     )
 }
 

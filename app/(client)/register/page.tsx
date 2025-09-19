@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import RegistrationForm from '@/app/components/RegistrationForm'
@@ -6,6 +7,14 @@ import { Id } from '@/convex/_generated/dataModel'
 import type { RegistrationFormData } from '@/lib/types/registration'
 import { useAction, useMutation } from 'convex/react'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 
 const RegistrationPage = () => {
 
@@ -15,7 +24,7 @@ const RegistrationPage = () => {
   const generateUploadStorageUrl = useMutation(api.storage.generateUploadUrl)
   const addOrUpdateStudent = useMutation(api.students.addOrUpdateStudent)
   const createRazorpayOrder = useAction(api.razorpay.createRazorpayOrder);
-
+  const createTransactions = useMutation(api.transactions.addTransaction)
   async function storeFile(
     file: File,
   ): Promise<undefined | Id<"_storage">> {
@@ -62,20 +71,65 @@ const RegistrationPage = () => {
     catch (error) {
       console.log("An error occurred during registration. Please try again.", error)
     }
-    window.alert("Registration successful!")
+    toast.success("Registration successful!")
   }
 
   const handlePayment = async () => {
     if (!razorpayLoaded) {
-      window.alert("Razorpay SDK not loaded yet.");
+      toast.error("Razorpay SDK not loaded yet.");
       return;
     }
     setProcessingPayment(true);
     try {
+      const eventId = "j57cry93hm1ac0w6b3tdpzk34d7qxzbd" as Id<'events'>;
       const data = await createRazorpayOrder({ eventId: "j57cry93hm1ac0w6b3tdpzk34d7qxzbd" as Id<'events'> });
-      
+
+      if (!data?.id) throw new Error("Order creation failed");
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        eventId: eventId,
+        currency: "INR",
+        name: "AWS Registration",
+        description: "Payment for Visa Application",
+        order_id: data.id,
+        handler: async (response: any) => {
+          try {
+
+            const transactions = await createTransactions({
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              amount: response.razorpay_amount,
+              status: response.razorpay_status,
+              })
+
+            if (transactions) {
+              // send receipt to the user
+              toast.success("Payment successful!")
+            }
+
+          } catch (error: unknown) {
+            console.error("Error in Razorpay API:", error);
+            const err = error as Error & { error?: { description: string } };
+            toast.error(`Failed to create payment order. Please try again.${err.error?.description || err.message}`);
+            setProcessingPayment(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setProcessingPayment(false);
+          },
+        },
+      }
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", () => {
+        setProcessingPayment(false);
+      });
+      rzp.open();
+
     } catch (err) {
-      window.alert(`Failed to create payment order. Please try again.${err}`);
+      toast.error(`Failed to create payment order. Please try again.${err}`);
       setProcessingPayment(false);
     }
   }

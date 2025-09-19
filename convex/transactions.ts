@@ -15,6 +15,8 @@ export const addTransaction = mutation({
   args: {
     paymentId: v.string(),
     amount: v.float64(),
+    orderId: v.string(),
+    status: v.string(),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("transactions", args);
@@ -27,6 +29,8 @@ export const updateTransaction = mutation({
     transactionId: v.id("transactions"),
     paymentId: v.optional(v.string()),
     amount: v.optional(v.float64()),
+    orderId: v.optional(v.string()),
+    status: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { transactionId, ...patch } = args;

@@ -1,39 +1,38 @@
 "use client"
 
-import React, { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/app/components/ui/button'
-import { Input } from '@/app/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/app/components/ui/form'
 import { Calendar as CalendarComponent } from '@/app/components/ui/calendar'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/app/components/ui/form'
+import { Input } from '@/app/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover'
-import { Upload, X, Calendar, User, Mail, Phone, GraduationCap, CalendarIcon } from 'lucide-react'
-import Image from 'next/image'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select'
 import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Calendar, CalendarIcon, GraduationCap, Mail, Phone, Upload, User, X } from 'lucide-react'
+import Image from 'next/image'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 // Types and validators
-import type { RegistrationFormProps, RegistrationFormData } from '@/lib/types/registration'
-import { registrationSchema, batchYears } from '@/lib/validators/registration'
-import { calculateAge, formatDateForDisplay } from '@/lib/utils/date'
-import { transformFormDataToSubmission, formatFormDataForLogging } from '@/lib/utils/form'
 import { useImageUpload } from '@/lib/hooks/useImageUpload'
+import type { RegistrationFormData, RegistrationFormProps } from '@/lib/types/registration'
+import { calculateAge, formatDateForDisplay } from '@/lib/utils/date'
+import { batchYears, registrationSchema } from '@/lib/validators/registration'
 
-export default function RegistrationForm({ 
-  onSubmit, 
-  isLoading = false, 
-  className 
+export default function RegistrationForm({
+  onSubmit,
+  isLoading = false,
+  className
 }: RegistrationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { imageState, handleImageUpload, removeImage } = useImageUpload()
+  const { imageState, handleImageUpload: handleImageState, removeImage } = useImageUpload()
 
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
     defaultValues: {
       fullName: '',
       dateOfBirth: undefined,
-      batch: '',
+      batch: undefined,
       email: '',
       phoneNumber: '',
       image: null
@@ -44,7 +43,7 @@ export default function RegistrationForm({
     const file = event.target.files?.[0]
     if (!file) return
 
-    const result = await handleImageUpload(file)
+    const result = await handleImageState(file)
     if (result.success) {
       form.setValue('image', file)
       form.clearErrors('image')
@@ -56,21 +55,7 @@ export default function RegistrationForm({
   const handleSubmit = async (data: RegistrationFormData) => {
     setIsSubmitting(true)
     try {
-      // Transform form data to submission format
-      const submissionData = transformFormDataToSubmission(data)
-      
-      // Log formatted data for debugging
-      console.log(formatFormDataForLogging(submissionData))
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      if (onSubmit) {
-        onSubmit(submissionData)
-      } else {
-        // Default behavior - proceed to payment
-        alert(`Registration successful! Age: ${submissionData.age} years. Proceeding to payment...`)
-      }
+      await onSubmit(data)
     } catch (error) {
       console.error('Registration error:', error)
     } finally {
@@ -86,7 +71,7 @@ export default function RegistrationForm({
           Student Registration
         </h1>
         <p className="text-muted-foreground text-sm sm:text-base">
-          Complete your registration to participate 
+          Complete your registration to participate
         </p>
       </div>
 
@@ -94,7 +79,7 @@ export default function RegistrationForm({
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           {/* Mobile-first single column, responsive grid on larger screens */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
+
             {/* Full Name */}
             <div className="lg:col-span-2">
               <FormField
@@ -248,7 +233,11 @@ export default function RegistrationForm({
                       <GraduationCap className="h-4 w-4" />
                       Batch/Year <span className="text-destructive">*</span>
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading || isSubmitting}>
+                    <Select
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      defaultValue={field.value?.toString()}
+                      disabled={isLoading || isSubmitting}
+                    >
                       <FormControl>
                         <SelectTrigger className="w-full h-11">
                           <SelectValue placeholder="Select your batch" />

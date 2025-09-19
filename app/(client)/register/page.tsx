@@ -1,13 +1,55 @@
 "use client"
 
-import React from 'react'
 import RegistrationForm from '@/app/components/RegistrationForm'
-import type { RegistrationSubmissionData } from '@/lib/types/registration'
+import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
+import type { RegistrationFormData } from '@/lib/types/registration'
+import { useMutation } from 'convex/react'
 
 const RegistrationPage = () => {
-  const handleRegistrationSubmit = (data: RegistrationSubmissionData) => {
-    console.log('Registration submitted:', data)
-    console.log(`Student age: ${data.age} years`)
+
+  const generateUploadStorageUrl = useMutation(api.storage.generateUploadUrl)
+  const addOrUpdateStudent = useMutation(api.students.addOrUpdateStudent)
+
+  async function storeFile(
+    file: File,
+  ): Promise<undefined | Id<"_storage">> {
+    try {
+      const postUrl = await generateUploadStorageUrl();
+      const result = await fetch(postUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      const { storageId } = await result.json();
+      return storageId;
+    } catch (error) {
+      console.error("Error occurred on StoreDocument Function, error: ", error);
+      return undefined;
+    }
+  }
+
+  const handleRegistrationSubmit = async (data: RegistrationFormData) => {
+    //get the storage id after uploading the file to convex storage
+    let storageId: undefined | Id<"_storage"> = undefined;
+    if (data.image) {
+      storageId = await storeFile(data.image);
+    }
+    const formatedData = {
+      name: data.fullName,
+      email: data.email,
+      phoneNumber: data.phoneNumber,
+      dateOfBirth: data.dateOfBirth.toISOString().split('T')[0],
+      imageStorageId: storageId,
+      batchYear: data.batch,
+    }
+    try {
+      await addOrUpdateStudent(formatedData)
+    }
+    catch (error) {
+      console.log("An error occurred during registration. Please try again.", error)
+    }
+    window.alert("Registration successful!")
   }
 
   return (

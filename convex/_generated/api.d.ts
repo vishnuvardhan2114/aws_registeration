@@ -13,6 +13,15 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as events from "../events.js";
+import type * as storage from "../storage.js";
+import type * as students from "../students.js";
+import type * as tables_events from "../tables/events.js";
+import type * as tables_students from "../tables/students.js";
+import type * as tables_tokens from "../tables/tokens.js";
+import type * as tables_transactions from "../tables/transactions.js";
+import type * as tokens from "../tokens.js";
+import type * as transactions from "../transactions.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -22,7 +31,17 @@ import type {
  * const myFunctionReference = api.myModule.myFunction;
  * ```
  */
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  events: typeof events;
+  storage: typeof storage;
+  students: typeof students;
+  "tables/events": typeof tables_events;
+  "tables/students": typeof tables_students;
+  "tables/tokens": typeof tables_tokens;
+  "tables/transactions": typeof tables_transactions;
+  tokens: typeof tokens;
+  transactions: typeof transactions;
+}>;
 export declare const api: FilterApi<
   typeof fullApi,
   FunctionReference<any, "public">

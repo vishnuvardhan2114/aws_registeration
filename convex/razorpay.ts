@@ -10,9 +10,16 @@ export const createRazorpayOrder = action({
   },
   handler: async (ctx, args) => {
     try {
+      const key_id = process.env.RAZORPAY_KEY_ID;
+      const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+      if (!key_id || !key_secret) {
+        throw new Error("Razorpay API keys are not configured");
+      }
+
       const razorpay = new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID,
-        key_secret: process.env.RAZORPAY_KEY_SECRET,
+        key_id,
+        key_secret,
       });
 
       const event = await ctx.runQuery(api.events.getEvent, {
@@ -31,17 +38,6 @@ export const createRazorpayOrder = action({
         amount: amountInPaise,
         currency: "INR",
         receipt: `receipt_${Date.now()}`,
-        transfers: [
-          {
-            account: "acc_Qqt7zwC7Btmg1p",
-            amount: amountInPaise,
-            currency: "INR",
-            notes: {
-              purpose: "Visa application via Getavisa",
-            },
-            on_hold: false,
-          },
-        ],
       };
 
       const order = await razorpay.orders.create(options);

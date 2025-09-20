@@ -23,7 +23,7 @@ export default function RegistrationForm({
   onSubmit,
   isLoading = false,
   className,
-  disabled = false
+  disabled = false,
 }: RegistrationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { imageState, handleImageUpload: handleImageState, removeImage } = useImageUpload()

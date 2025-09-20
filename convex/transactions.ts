@@ -48,8 +48,6 @@ export const insertTransaction = mutation({
   returns: v.id("transactions"),
   handler: async (ctx, args) => {
     return await ctx.db.insert("transactions", args);
-<<<<<<< HEAD
-=======
   },
 });
 
@@ -67,7 +65,6 @@ export const getTransactionById = query({
   }), v.null()),
   handler: async (ctx, args) => {
     return await ctx.db.get(args.transactionId);
->>>>>>> upstream/main
   },
 });
 

@@ -107,6 +107,7 @@ export const addOrUpdateStudent = mutation({
     imageStorageId: v.optional(v.id("_storage")),
     batchYear: v.number(),
   },
+  returns: v.id("students"),
   handler: async (ctx, args) => {
     // Check for existing student by email
     let existing = await ctx.db
@@ -142,9 +143,11 @@ export const updateStudent = mutation({
     imageStorageId: v.optional(v.id("_storage")),
     batchYear: v.optional(v.number()),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const { studentId, ...patch } = args;
     await ctx.db.patch(studentId, patch);
+    return null;
   },
 });
 

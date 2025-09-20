@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useQuery } from 'convex/react';
+import DownloadableReceipt from '@/app/components/DownloadableReceipt';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
-import DownloadableReceipt from '@/app/components/DownloadableReceipt';
+import { useQuery } from 'convex/react';
+import { useSearchParams } from 'next/navigation';
 
 const ReceiptPage = () => {
   const searchParams = useSearchParams();
@@ -58,7 +57,7 @@ const ReceiptPage = () => {
           mode="view"
           fileName={`event_receipt_${tokenId}.pdf`}
         />
-        
+
         {/* Mobile Download Button - Only visible on small screens */}
         <div className="mt-6 p-4 bg-white border-t border-gray-200">
           <DownloadableReceipt

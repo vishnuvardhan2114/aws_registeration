@@ -42,6 +42,16 @@ const AdminLoginPage = () => {
         }
     }, [searchParams, router])
 
+    // Debug logging for production issues
+    useEffect(() => {
+        console.log('Admin page loaded:', {
+            pathname: window.location.pathname,
+            search: window.location.search,
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+        });
+    }, [])
+
     // Accepts FormData, not a plain object
     const handleLogin = async (formData: FormData) => {
         setIsLoading(true)

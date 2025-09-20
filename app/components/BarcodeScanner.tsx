@@ -13,70 +13,6 @@ const Scanner = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
 
-  // const startScan = useCallback(async () => {
-  //   try {
-  //     console.log("Starting scan...");
-  //     setError("");
-  //     setScannedResult("");
-  //     setIsScanning(true);
-
-  //     // Check if browser supports getUserMedia
-  //     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-  //       throw new Error("Camera access not supported by this browser");
-  //     }
-
-  //     // Initialize the barcode reader
-  //     console.log("Initializing barcode reader...");
-  //     readerRef.current = new BrowserMultiFormatReader();
-
-  //     // Get camera stream
-  //     const constraints = {
-  //       video: {
-  //         facingMode: { ideal: "environment" }, // Prefer back camera on mobile
-  //         width: { ideal: 1280 },
-  //         height: { ideal: 720 }
-  //       }
-  //     };
-
-  //     console.log("Requesting camera access...");
-  //     const stream = await navigator.mediaDevices.getUserMedia(constraints);
-  //     streamRef.current = stream;
-  //     console.log("Camera access granted, stream obtained");
-
-  //     if (videoRef.current) {
-  //       videoRef.current.srcObject = stream;
-  //       console.log("Video element set with stream");
-
-  //       // Wait for video to load and start continuous scanning
-  //       videoRef.current.onloadedmetadata = () => {
-  //         console.log("Video metadata loaded, starting continuous scanning...");
-  //         startContinuousScanning();
-  //       };
-  //     }
-  //   } catch (err) {
-  //     console.error("Error starting scan:", err);
-  //     let errorMessage = "Failed to start camera";
-
-  //     if (err instanceof Error) {
-  //       if (err.name === "NotAllowedError") {
-  //         errorMessage = "Camera permission denied. Please allow camera access and try again.";
-  //       } else if (err.name === "NotFoundError") {
-  //         errorMessage = "No camera found on this device.";
-  //       } else if (err.name === "NotSupportedError") {
-  //         errorMessage = "Camera not supported by this browser.";
-  //       } else {
-  //         errorMessage = err.message;
-  //       }
-  //     }
-
-  //     setError(errorMessage);
-  //     setIsScanning(false);
-  //   }
-
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
-
-
   const startScan = useCallback(async () => {
     try {
       console.log("Starting scan...");
@@ -84,24 +20,34 @@ const Scanner = () => {
       setScannedResult("");
       setIsScanning(true);
 
-      if (!navigator.mediaDevices?.getUserMedia) {
+      // Check if browser supports getUserMedia
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error("Camera access not supported by this browser");
       }
 
-      // Relax constraints for mobile compatibility
-      const constraints: MediaStreamConstraints = {
-        video: { facingMode: "environment" }
+      // Initialize the barcode reader
+      console.log("Initializing barcode reader...");
+      readerRef.current = new BrowserMultiFormatReader();
+
+      // Get camera stream
+      const constraints = {
+        video: {
+          facingMode: { ideal: "environment" }, // Prefer back camera on mobile
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       };
 
       console.log("Requesting camera access...");
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
+      console.log("Camera access granted, stream obtained");
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.setAttribute("playsinline", "true"); // ✅ required for iOS Safari
-        videoRef.current.play();
+        console.log("Video element set with stream");
 
+        // Wait for video to load and start continuous scanning
         videoRef.current.onloadedmetadata = () => {
           console.log("Video metadata loaded, starting continuous scanning...");
           startContinuousScanning();
@@ -126,8 +72,10 @@ const Scanner = () => {
       setError(errorMessage);
       setIsScanning(false);
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const startContinuousScanning = useCallback(() => {
     if (!readerRef.current || !videoRef.current || !isScanning) return;

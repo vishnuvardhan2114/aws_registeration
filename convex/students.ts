@@ -7,13 +7,48 @@ export const getFileUrl = query({
   args: { storageId: v.id("_storage") },
   handler: async (ctx, { storageId }) => {
     const url = await ctx.storage.getUrl(storageId);
-    return { url }; // url can be string | null
+    return { url }; 
   },
 });
 
 
 // Get a single student by ID
 export const getStudent = query({
+  args: { studentId: v.id("students") },
+  returns: v.union(
+    v.object({
+      _id: v.id("students"),
+      _creationTime: v.number(),
+      name: v.string(),
+      email: v.string(),
+      phoneNumber: v.string(),
+      dateOfBirth: v.string(),
+      imageStorageId: v.optional(v.id("_storage")),
+      imageUrl: v.optional(v.string()),
+      batchYear: v.number(),
+    }),
+    v.null()
+  ),
+  handler: async (ctx, args) => {
+    const student = await ctx.db.get(args.studentId);
+    if (!student) return null;
+    
+    // Resolve image URL if storage ID exists
+    let imageUrl: string | undefined = undefined;
+    if (student.imageStorageId) {
+      const url = await ctx.storage.getUrl(student.imageStorageId);
+      imageUrl = url || undefined;
+    }
+    
+    return {
+      ...student,
+      imageUrl,
+    };
+  },
+});
+
+// Get a student by ID (alias for getStudent for consistency)
+export const getStudentById = query({
   args: { studentId: v.id("students") },
   returns: v.union(
     v.object({
@@ -57,6 +92,7 @@ export const addStudent = mutation({
     imageStorageId: v.optional(v.id("_storage")),
     batchYear: v.number(),
   },
+  returns: v.id("students"),
   handler: async (ctx, args) => {
     return await ctx.db.insert("students", args);
   },
@@ -124,6 +160,7 @@ export const getAllStudents = query({
       phoneNumber: v.string(),
       dateOfBirth: v.string(),
       imageStorageId: v.optional(v.id("_storage")),
+      imageUrl: v.optional(v.string()),
       batchYear: v.number(),
     })
   ),

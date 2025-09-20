@@ -151,7 +151,9 @@ const EventRegistrationPage = () => {
       });
       console.log("Transaction ID:--", transactionId);
 
-      if (!transactionId) return;
+      if (!transactionId) {
+        throw new Error("Failed to create transaction");
+      }
 
       toast.success("Payment successful! You have been registered for the event.")
 
@@ -163,6 +165,10 @@ const EventRegistrationPage = () => {
       }, 'token details');
 
       // Generate token and redirect
+      if (!studentId) {
+        throw new Error("Student ID not found");
+      }
+      
       const tokenId = await createToken({
         transactionId,
         eventId,

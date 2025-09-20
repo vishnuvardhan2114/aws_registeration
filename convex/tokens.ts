@@ -315,6 +315,117 @@ export const getRegistrationDetailsByTokenId = query({
    },
 });
 
+// Get token details by unique code for scanner validation
+export const getTokenByUniqueCode = query({
+  args: { uniqueCode: v.string() },
+  returns: v.union(
+    v.object({
+      token: v.object({
+        _id: v.id("tokens"),
+        _creationTime: v.number(),
+        transactionId: v.id("transactions"),
+        eventId: v.id("events"),
+        studentId: v.id("students"),
+        isUsed: v.boolean(),
+        uniqueCode: v.string(),
+      }),
+      event: v.object({
+        _id: v.id("events"),
+        _creationTime: v.number(),
+        name: v.string(),
+        isFoodIncluded: v.boolean(),
+        amount: v.number(),
+        EndDate: v.string(),
+        StartDate: v.string(),
+      }),
+      student: v.object({
+        _id: v.id("students"),
+        _creationTime: v.number(),
+        name: v.string(),
+        email: v.string(),
+        phoneNumber: v.string(),
+        dateOfBirth: v.string(),
+        imageStorageId: v.optional(v.id("_storage")),
+        imageUrl: v.optional(v.string()),
+        batchYear: v.number(),
+      }),
+    }),
+    v.null()
+  ),
+  handler: async (ctx, args) => {
+    // Find token by unique code
+    const token = await ctx.db
+      .query("tokens")
+      .filter((q) => q.eq(q.field("uniqueCode"), args.uniqueCode))
+      .unique();
+
+    if (!token) {
+      return null;
+    }
+
+    // Get event details
+    const event = await ctx.db.get(token.eventId);
+    if (!event) {
+      return null;
+    }
+
+    // Get student details
+    const student = await ctx.db.get(token.studentId);
+    if (!student) {
+      return null;
+    }
+
+    // Resolve student image URL if storage ID exists
+    let imageUrl: string | undefined = undefined;
+    if (student.imageStorageId) {
+      const url = await ctx.storage.getUrl(student.imageStorageId);
+      imageUrl = url || undefined;
+    }
+
+    return {
+      token,
+      event,
+      student: {
+        ...student,
+        imageUrl,
+      },
+    };
+  },
+});
+
+// Mark token as used
+export const markTokenAsUsed = mutation({
+  args: { tokenId: v.id("tokens") },
+  returns: v.object({
+    success: v.boolean(),
+    message: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    const token = await ctx.db.get(args.tokenId);
+    
+    if (!token) {
+      return {
+        success: false,
+        message: "Token not found",
+      };
+    }
+
+    if (token.isUsed) {
+      return {
+        success: false,
+        message: "Token has already been used",
+      };
+    }
+
+    await ctx.db.patch(args.tokenId, { isUsed: true });
+    
+    return {
+      success: true,
+      message: "Token marked as used successfully",
+    };
+  },
+});
+
 // Get all transactions with comprehensive details for admin dashboard
 export const getAllTransactionsWithDetails = query({
   args: {},

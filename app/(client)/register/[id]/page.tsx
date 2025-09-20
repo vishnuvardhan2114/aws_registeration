@@ -16,7 +16,8 @@ import { Id } from '@/convex/_generated/dataModel';
 import type { RegistrationFormData } from '@/lib/types/registration';
 import { useAction, useMutation, useQuery } from 'convex/react';
 import {
-    ArrowLeft
+    ArrowLeft,
+    Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -188,10 +189,10 @@ const EventRegistrationPage = () => {
             if (tokenResult?.tokenId) {
                 toast.success("Token generated successfully! Redirecting to receipt...");
                 console.log("Redirecting to receipt with token:", tokenResult.tokenId);
-                
+
                 // Set loading state before navigation
                 setIsNavigatingToReceipt(true);
-                
+
                 // Navigate to receipt page
                 router.push(`/register/receipt/?token=${tokenResult.tokenId}`);
             } else {
@@ -202,10 +203,10 @@ const EventRegistrationPage = () => {
             console.error("Error details:", error);
             console.error("Error message:", error instanceof Error ? error.message : "Unknown error");
             console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
-            
+
             // Reset loading state on error
             setIsNavigatingToReceipt(false);
-            
+
             toast.error(
                 `Payment successful but registration failed. Please contact support with payment ID: ${response.razorpay_payment_id}`
             );
@@ -245,7 +246,7 @@ const EventRegistrationPage = () => {
             console.log("Creating Razorpay order for event:", eventId);
             const orderData = await createRazorpayOrder({ eventId });
             console.log("Order data received:", orderData);
-            
+
             if (!orderData?.id) {
                 throw new Error("Failed to create payment order - no order ID returned");
             }
@@ -330,24 +331,8 @@ const EventRegistrationPage = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen">
-                <div className="container mx-auto py-8 ">
-                    <div className=" mx-auto">
-                        <div className="">
-                            {/* Registration Form Skeleton */}
-                            <Card>
-                                <CardHeader>
-                                    <Skeleton className="h-6 w-1/2" />
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {Array.from({ length: 6 }).map((_, index) => (
-                                        <Skeleton key={index} className="h-10 w-full" />
-                                    ))}
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </div>
-                </div>
+            <div className="min-h-screen flex justify-center items-center mx-auto">
+                <Loader2 className='animate-spin' /> Loading...
             </div>
         );
     }
@@ -405,22 +390,22 @@ const EventRegistrationPage = () => {
     return (
         <div className="min-h-screen">
             {/* Logo Header */}
-            <div className="w-full px-4 py-4">
+            <div className="w-full px-4 pt-4 lg:py-4">
                 <div className="flex justify-center lg:justify-start">
                     <Link href="/register" className="inline-block">
-                        <Image 
-                            src="/SGA.webp" 
-                            alt="SGA Logo" 
-                            width={120}
-                            height={60}
-                            className="h-12 w-auto object-contain lg:h-16"
+                        <Image
+                            src="/SGA.webp"
+                            alt="SGA Logo"
+                            width={500}
+                            height={500}
+                            className="h-20 w-auto object-contain lg:h-16"
                             priority
                         />
                     </Link>
                 </div>
             </div>
-            
-            <div className="container mx-auto py-8 ">
+
+            <div className="container mx-auto pb-8 ">
                 <div className="">
                     {registrationCompleted && studentId ? (
                         <Card className="text-center py-12">

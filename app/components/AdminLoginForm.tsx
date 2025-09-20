@@ -95,7 +95,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
               placeholder="example@email.com"
               value={formData.email}
               onChange={handleInputChange}
-              className="pl-10 h-12 border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 rounded-lg"
+              className="pl-10 h-12 border-2 border-red-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 rounded-lg"
               required
               disabled={isLoading}
             />
@@ -116,7 +116,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleInputChange}
-              className="pl-10 pr-12 h-12 border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 rounded-lg"
+              className="pl-10 pr-12 h-12 border-2 border-red-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200 rounded-lg"
               required
               disabled={isLoading}
             />
@@ -139,7 +139,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
         {/* Login Button */}
         <Button
           type="submit"
-          className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full h-12 bg-red-800 hover:bg-red-900 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           disabled={isLoading}
         >
           {isLoading ? (

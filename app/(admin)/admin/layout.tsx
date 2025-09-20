@@ -13,7 +13,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const pathname = usePathname();
 
     // Conditional rendering for sidebar and layout
-    if (pathname === "/admin") {
+    if (pathname === "/admin" || pathname === "/admin/scanner") {
         return <>{children}</>;
     }
 

@@ -33,8 +33,13 @@ const navigationItems = [
         icon: LayoutDashboard,
     },
     {
-        title: 'Registered Users',
+        title: 'Registered Students',
         url: '/admin/register-users',
+        icon: Users,
+    },
+    {
+        title: 'Manage Users',
+        url: '/admin/manage-users',
         icon: Users,
     },
     {

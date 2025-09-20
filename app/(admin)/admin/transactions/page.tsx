@@ -1,14 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import {
   Search,
-  Filter,
   Download,
   Eye,
-  Calendar,
-  User,
-  Phone,
   CreditCard
 } from 'lucide-react';
 import {
@@ -35,75 +33,18 @@ import {
 import {
   Badge
 } from '@/app/components/ui/badge';
-// Custom dropdown implementation for status filter
 
-// Mock data for transactions
-const mockTransactions = [
-  {
-    id: 'TXN-001',
-    paymentId: 'pay_123456789',
-    orderId: 'order_001',
-    amount: 299.00,
-    status: 'completed',
-    payerName: 'John Doe',
-    payerPhone: '+91 98765 43210',
-    eventName: 'AWS Summit 2024',
-    date: '2024-01-15T10:30:00Z',
-    method: 'razorpay'
-  },
-  {
-    id: 'TXN-002',
-    paymentId: 'pay_987654321',
-    orderId: 'order_002',
-    amount: 149.00,
-    status: 'pending',
-    payerName: 'Jane Smith',
-    payerPhone: '+91 87654 32109',
-    eventName: 'Tech Conference',
-    date: '2024-01-14T14:20:00Z',
-    method: 'razorpay'
-  },
-  {
-    id: 'TXN-003',
-    paymentId: 'pay_456789123',
-    orderId: 'order_003',
-    amount: 199.00,
-    status: 'failed',
-    payerName: 'Mike Johnson',
-    payerPhone: '+91 76543 21098',
-    eventName: 'Developer Workshop',
-    date: '2024-01-13T09:15:00Z',
-    method: 'razorpay'
-  },
-  {
-    id: 'TXN-004',
-    paymentId: 'pay_789123456',
-    orderId: 'order_004',
-    amount: 399.00,
-    status: 'completed',
-    payerName: 'Sarah Wilson',
-    payerPhone: '+91 65432 10987',
-    eventName: 'AI Conference',
-    date: '2024-01-12T16:45:00Z',
-    method: 'razorpay'
-  },
-  {
-    id: 'TXN-005',
-    paymentId: 'pay_321654987',
-    orderId: 'order_005',
-    amount: 99.00,
-    status: 'refunded',
-    payerName: 'David Brown',
-    payerPhone: '+91 54321 09876',
-    eventName: 'Webinar Series',
-    date: '2024-01-11T11:00:00Z',
-    method: 'razorpay'
-  }
-];
+// Transaction type from Convex
+type Transaction = {
+  _id: string;
+  _creationTime: number;
+  paymentId: string;
+  amount: number;
+  orderId: string;
+  status: string;
+};
 
 type TransactionStatus = 'completed' | 'pending' | 'failed' | 'refunded';
-
-// Transaction interface removed as it's not used in this implementation
 
 const getStatusBadge = (status: TransactionStatus) => {
   const statusConfig = {
@@ -158,34 +99,54 @@ const formatDate = (dateString: string) => {
 const TransactionsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<TransactionStatus | 'all'>('all');
+  const [paginationCursor, setPaginationCursor] = useState<string | null>(null);
+  const [isSearchMode, setIsSearchMode] = useState(false);
 
-  const filteredTransactions = useMemo(() => {
-    return mockTransactions.filter(transaction => {
-      const matchesSearch =
-        transaction.payerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.payerPhone.includes(searchTerm) ||
-        transaction.eventName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.paymentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.orderId.toLowerCase().includes(searchTerm.toLowerCase());
+  // Queries
+  const transactions = useQuery(
+    api.transactions.getTransactions,
+    isSearchMode ? "skip" : {
+      paginationOpts: {
+        numItems: 20,
+        cursor: paginationCursor,
+      },
+    }
+  );
 
-      const matchesStatus = statusFilter === 'all' || transaction.status === statusFilter;
+  const searchResults = useQuery(
+    api.transactions.searchTransactions,
+    !isSearchMode || (!searchTerm.trim() && statusFilter === 'all') ? "skip" : {
+      searchTerm: searchTerm.trim(),
+      statusFilter: statusFilter === 'all' ? undefined : statusFilter,
+      paginationOpts: {
+        numItems: 20,
+        cursor: paginationCursor,
+      },
+    }
+  );
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [searchTerm, statusFilter]);
+  const stats = useQuery(api.transactions.getTransactionStats);
 
-  const totalAmount = useMemo(() => {
-    return filteredTransactions
-      .filter(t => t.status === 'completed')
-      .reduce((sum, transaction) => sum + transaction.amount, 0);
-  }, [filteredTransactions]);
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setPaginationCursor(null);
+    setIsSearchMode(value.trim().length > 0 || statusFilter !== 'all');
+  };
 
-  const statusCounts = useMemo(() => {
-    return filteredTransactions.reduce((counts, transaction) => {
-      counts[transaction.status] = (counts[transaction.status] || 0) + 1;
-      return counts;
-    }, {} as Record<TransactionStatus, number>);
-  }, [filteredTransactions]);
+  const handleStatusFilter = (status: TransactionStatus | 'all') => {
+    setStatusFilter(status);
+    setPaginationCursor(null);
+    setIsSearchMode(searchTerm.trim().length > 0 || status !== 'all');
+  };
+
+  const currentData = isSearchMode ? searchResults : transactions;
+  const hasMore = currentData ? !currentData.isDone : false;
+
+  const loadMore = () => {
+    if (currentData && hasMore) {
+      setPaginationCursor(currentData.continueCursor);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -207,24 +168,24 @@ const TransactionsPage = () => {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalAmount)}</div>
+            <div className="text-2xl font-bold">
+              {stats ? formatCurrency(stats.totalAmount) : 'Loading...'}
+            </div>
             <p className="text-xs text-muted-foreground">
-              From {statusCounts.completed || 0} completed transactions
+              From {stats?.completedTransactions || 0} completed transactions
             </p>
           </CardContent>
         </Card>
-
       </div>
 
       {/* Filters */}
-
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-x-4 md:space-y-0">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name, phone, event, payment ID..."
+            placeholder="Search by payment ID, order ID..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="pl-9 h-11 w-[40%]"
           />
         </div>
@@ -237,27 +198,21 @@ const TransactionsPage = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Transaction ID</TableHead>
-                <TableHead>Payer Details</TableHead>
-                <TableHead>Event</TableHead>
+                <TableHead>Payment Details</TableHead>
+                <TableHead>Order ID</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-[50px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTransactions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
-                    No transactions found.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredTransactions.map((transaction) => (
-                  <TableRow key={transaction.id}>
+              {currentData && currentData.page.length > 0 ? (
+                currentData.page.map((transaction) => (
+                  <TableRow key={transaction._id}>
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="font-medium">{transaction.id}</div>
+                        <div className="font-medium">{transaction._id.slice(-8)}</div>
                         <div className="text-xs text-muted-foreground">
                           {transaction.paymentId}
                         </div>
@@ -265,30 +220,21 @@ const TransactionsPage = () => {
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{transaction.payerName}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">
-                            {transaction.payerPhone}
-                          </span>
+                        <div className="font-medium">Payment ID</div>
+                        <div className="text-xs text-muted-foreground">
+                          {transaction.paymentId}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{transaction.eventName}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {transaction.orderId}
-                      </div>
+                      <div className="font-medium">{transaction.orderId}</div>
                     </TableCell>
                     <TableCell>
                       <div className="font-semibold text-lg">
                         {formatCurrency(transaction.amount)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        via {transaction.method}
+                        via Razorpay
                       </div>
                     </TableCell>
                     <TableCell>
@@ -296,7 +242,7 @@ const TransactionsPage = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {formatDate(transaction.date)}
+                        {formatDate(new Date(transaction._creationTime).toISOString())}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -313,11 +259,33 @@ const TransactionsPage = () => {
                     </TableCell>
                   </TableRow>
                 ))
+              ) : currentData ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center">
+                    No transactions found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-2 text-sm text-muted-foreground">Loading transactions...</p>
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      {/* Load More Button */}
+      {hasMore && (
+        <div className="flex justify-center">
+          <Button variant="outline" onClick={loadMore}>
+            Load More
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

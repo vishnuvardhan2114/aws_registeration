@@ -198,7 +198,7 @@ const RegisterStudentsPage = () => {
             placeholder="Search by name, email, phone, DOB..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-11 w-[40%]"
             disabled={isLoading}
           />
         </div>

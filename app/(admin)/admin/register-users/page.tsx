@@ -198,7 +198,7 @@ const RegisterStudentsPage = () => {
             placeholder="Search by name, email, phone, DOB..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-11 w-[40%]"
             disabled={isLoading}
           />
         </div>
@@ -226,7 +226,7 @@ const RegisterStudentsPage = () => {
           <CardTitle>Students List</CardTitle>
           <CardDescription>
             {isLoading ? (
-              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-32" as="span" />
             ) : (
               `${filteredStudents.length} of ${totalStudents} students`
             )}

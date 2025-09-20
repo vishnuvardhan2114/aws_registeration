@@ -1,7 +1,6 @@
 // convex/transactions.ts
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-
 // Get a single transaction by ID
 export const getTransaction = query({
   args: { transactionId: v.id("transactions") },
@@ -9,7 +8,6 @@ export const getTransaction = query({
     return await ctx.db.get(args.transactionId);
   },
 });
-
 export const insertTransaction = mutation({
   args: {
     paymentId: v.string(),
@@ -32,3 +30,8 @@ export const insertTransaction = mutation({
     await ctx.db.insert("transactions", args);
   },
 });
+
+
+
+
+

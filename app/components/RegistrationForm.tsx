@@ -22,7 +22,8 @@ import { batchYears, registrationSchema } from '@/lib/validators/registration'
 export default function RegistrationForm({
   onSubmit,
   isLoading = false,
-  className
+  className,
+  disabled = false,
 }: RegistrationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { imageState, handleImageUpload: handleImageState, removeImage } = useImageUpload()
@@ -96,7 +97,7 @@ export default function RegistrationForm({
                         placeholder="Enter your full name"
                         {...field}
                         className="w-full h-11"
-                        disabled={isLoading || isSubmitting}
+                        disabled={disabled || isLoading || isSubmitting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -125,7 +126,7 @@ export default function RegistrationForm({
                             onChange={handleImageFileUpload}
                             className="hidden"
                             id="image-upload"
-                            disabled={isLoading || isSubmitting}
+                            disabled={disabled || isLoading || isSubmitting}
                           />
                           <label
                             htmlFor="image-upload"
@@ -153,7 +154,7 @@ export default function RegistrationForm({
                             type="button"
                             onClick={removeImage}
                             className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 transition-colors"
-                            disabled={isLoading || isSubmitting}
+                            disabled={disabled || isLoading || isSubmitting}
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -194,7 +195,7 @@ export default function RegistrationForm({
                               "w-full justify-start h-11 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
-                            disabled={isLoading || isSubmitting}
+                            disabled={disabled || isLoading || isSubmitting}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {field.value ? formatDateForDisplay(field.value) : "Select your date of birth"}
@@ -274,7 +275,7 @@ export default function RegistrationForm({
                         placeholder="Enter your email address"
                         {...field}
                         className="w-full h-11"
-                        disabled={isLoading || isSubmitting}
+                        disabled={disabled || isLoading || isSubmitting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -300,7 +301,7 @@ export default function RegistrationForm({
                         placeholder="Enter your phone number"
                         {...field}
                         className="w-full h-11"
-                        disabled={isLoading || isSubmitting}
+                        disabled={disabled || isLoading || isSubmitting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -314,7 +315,7 @@ export default function RegistrationForm({
           <div className="sticky bottom-0 bg-background border-t border-border p-4 -mx-4 sm:-mx-6 lg:mx-0 lg:border-t-0 lg:p-0 lg:static">
             <Button
               type="submit"
-              disabled={isSubmitting || isLoading}
+              disabled={disabled || isSubmitting || isLoading}
               className="w-full h-12 text-base font-semibold"
               size="lg"
             >

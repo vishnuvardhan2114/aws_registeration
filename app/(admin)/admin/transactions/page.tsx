@@ -225,7 +225,7 @@ const TransactionsPage = () => {
             placeholder="Search by name, phone, event, payment ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-11 w-[40%]"
           />
         </div>
       </div>

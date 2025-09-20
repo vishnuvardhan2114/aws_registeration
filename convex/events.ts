@@ -81,3 +81,25 @@ export const deleteEvent = mutation({
     return null;
   },
 });
+
+// Get active events (events that are currently active or upcoming)
+export const getActiveEvents = query({
+  args: {},
+  returns: v.array(v.object({
+    _id: v.id("events"),
+    _creationTime: v.number(),
+    name: v.string(),
+    isFoodIncluded: v.boolean(),
+    amount: v.float64(),
+    EndDate: v.string(),
+    StartDate: v.string(),
+  })),
+  handler: async (ctx) => {
+    const now = new Date().toISOString();
+    return await ctx.db
+      .query("events")
+      .filter((q) => q.gte(q.field("EndDate"), now))
+      .order("asc")
+      .collect();
+  },
+});

@@ -69,13 +69,6 @@ const AdminLoginPage = () => {
         }
     }
 
-    // Show loader if logout was triggered
-    if (showLoader) {
-        return <div className='flex justify-center items-center h-screen'>
-            <Loader2 className='animate-spin' /> Loading...
-        </div>
-    }
-
     return (
         <>
             <div

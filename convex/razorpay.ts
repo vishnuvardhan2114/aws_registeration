@@ -10,13 +10,16 @@ export const createRazorpayOrder = action({
   },
   handler: async (ctx, args) => {
     try {
-      console.log("Creating Razorpay order for eventId:", args.eventId);
-      console.log(process.env.RAZORPAY_KEY_ID, "keyid");
-      console.log(process.env.RAZORPAY_KEY_SECRET, "key secret");
+      const key_id = process.env.RAZORPAY_KEY_ID;
+      const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+      if (!key_id || !key_secret) {
+        throw new Error("Razorpay API keys are not configured");
+      }
 
       const razorpay = new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID,
-        key_secret: process.env.RAZORPAY_KEY_SECRET,
+        key_id,
+        key_secret,
       });
 
       const event = await ctx.runQuery(api.events.getEvent, {

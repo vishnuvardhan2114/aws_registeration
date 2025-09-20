@@ -226,7 +226,7 @@ const RegisterStudentsPage = () => {
           <CardTitle>Students List</CardTitle>
           <CardDescription>
             {isLoading ? (
-              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-32" as="span" />
             ) : (
               `${filteredStudents.length} of ${totalStudents} students`
             )}

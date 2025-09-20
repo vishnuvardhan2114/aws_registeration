@@ -30,6 +30,10 @@ export const addToken = mutation({
       studentId: v.id("students"),
       isUsed: v.boolean(),
    },
+   returns: v.object({
+      tokenId: v.id("tokens"),
+      uniqueCode: v.string(),
+   }),
    handler: async (ctx, args) => {
       function generateUniqueCode(length: number = 6): string {
          const chars =
@@ -42,7 +46,11 @@ export const addToken = mutation({
          return result;
       }
       const uniqueCode = generateUniqueCode(8);
+      console.log("Creating token with args:", { ...args, uniqueCode });
+      
       const tokenId = await ctx.db.insert("tokens", { ...args, uniqueCode });
+      
+      console.log("Token created successfully with ID:", tokenId);
       return {
          tokenId,
          uniqueCode,
@@ -305,4 +313,104 @@ export const getRegistrationDetailsByTokenId = query({
          },
       };
    },
+});
+
+// Get all transactions with comprehensive details for admin dashboard
+export const getAllTransactionsWithDetails = query({
+  args: {},
+  returns: v.array(v.union(v.object({
+    transaction: v.object({
+      _id: v.id("transactions"),
+      _creationTime: v.number(),
+      paymentId: v.string(),
+      orderId: v.string(),
+      amount: v.number(),
+      currency: v.string(),
+      status: v.string(),
+      method: v.string(),
+      bank: v.optional(v.string()),
+      wallet: v.optional(v.string()),
+      vpa: v.optional(v.string()),
+      email: v.string(),
+      contact: v.string(),
+      fee: v.number(),
+      tax: v.number(),
+      created_at: v.string(),
+      rawResponse: v.any(),
+    }),
+    event: v.union(v.object({
+      _id: v.id("events"),
+      _creationTime: v.number(),
+      name: v.string(),
+      isFoodIncluded: v.boolean(),
+      amount: v.number(),
+      EndDate: v.string(),
+      StartDate: v.string(),
+    }), v.null()),
+    student: v.union(v.object({
+      _id: v.id("students"),
+      _creationTime: v.number(),
+      name: v.string(),
+      email: v.string(),
+      phoneNumber: v.string(),
+      dateOfBirth: v.string(),
+      imageStorageId: v.optional(v.id("_storage")),
+      imageUrl: v.optional(v.string()),
+      batchYear: v.number(),
+    }), v.null()),
+    token: v.union(v.object({
+      _id: v.id("tokens"),
+      _creationTime: v.number(),
+      transactionId: v.id("transactions"),
+      eventId: v.id("events"),
+      studentId: v.id("students"),
+      isUsed: v.boolean(),
+      uniqueCode: v.optional(v.string()),
+    }), v.null()),
+  }), v.null())),
+  handler: async (ctx) => {
+    // Get all transactions
+    const transactions = await ctx.db.query("transactions").order("desc").collect();
+    
+    const results = await Promise.all(
+      transactions.map(async (transaction) => {
+        // Find token for this transaction
+        const token = await ctx.db
+          .query("tokens")
+          .filter((q) => q.eq(q.field("transactionId"), transaction._id))
+          .unique();
+        
+        if (!token) {
+          return {
+            transaction,
+            event: null,
+            student: null,
+            token: null,
+          };
+        }
+        
+        // Get event details
+        const event = await ctx.db.get(token.eventId);
+        
+        // Get student details
+        const student = await ctx.db.get(token.studentId);
+        
+        // Resolve student image URL if storage ID exists
+        let imageUrl: string | undefined = undefined;
+        if (student?.imageStorageId) {
+          const url = await ctx.storage.getUrl(student.imageStorageId);
+          imageUrl = url || undefined;
+        }
+        
+        return {
+          transaction,
+          event,
+          student: student ? { ...student, imageUrl } : null,
+          token,
+        };
+      })
+    );
+    
+    return results;
+  },
 });

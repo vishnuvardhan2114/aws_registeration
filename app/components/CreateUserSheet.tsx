@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/components/ui/select'
-import { Loader2, UserPlus } from 'lucide-react'
+import { Loader2, UserPlus, Eye, EyeOff } from 'lucide-react'
 import { Id } from '@/convex/_generated/dataModel'
 
 interface CreateUserSheetProps {
@@ -55,6 +55,7 @@ const CreateUserSheet: React.FC<CreateUserSheetProps> = ({ isOpen, onClose, edit
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Partial<CreateUserForm>>({})
+  const [showPassword, setShowPassword] = useState(false)
 
   const createUser = useMutation(api.users.createUser)
   const updateUser = useMutation(api.users.updateUser)
@@ -258,15 +259,29 @@ const CreateUserSheet: React.FC<CreateUserSheetProps> = ({ isOpen, onClose, edit
               <Label htmlFor="password">
                 Password {!editUser && <span className="text-red-500">*</span>}
               </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder={editUser ? "Enter new password (leave empty to keep current)" : "Enter password"}
-                value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                className={errors.password ? 'border-red-500' : ''}
-                disabled={isSubmitting}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={editUser ? "Enter new password (leave empty to keep current)" : "Enter password"}
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  className={`pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  disabled={isSubmitting}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password}</p>
               )}

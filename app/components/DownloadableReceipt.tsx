@@ -191,7 +191,7 @@ export default function DownloadableReceipt({
     }, []);
 
     if (!registrationDetails) {
-        return (
+  return (
             <div className="flex items-center justify-center p-8">
                 <p className="text-gray-600">No registration details available</p>
             </div>

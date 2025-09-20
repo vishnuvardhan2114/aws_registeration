@@ -37,6 +37,7 @@ const EventRegistrationPage = () => {
     const [razorpayLoaded, setRazorpayLoaded] = useState(false);
     const [registrationCompleted, setRegistrationCompleted] = useState(false);
     const [studentId, setStudentId] = useState<Id<"students"> | null>(null);
+    const [isNavigatingToReceipt, setIsNavigatingToReceipt] = useState(false);
 
     const event = useQuery(api.events.getEvent, { eventId });
     const generateUploadStorageUrl = useMutation(api.storage.generateUploadUrl);
@@ -143,13 +144,18 @@ const EventRegistrationPage = () => {
         response: any,
     ): Promise<void> => {
         try {
+            console.log("=== PAYMENT SUCCESS HANDLER STARTED ===");
+            console.log("Response from Razorpay:", response);
+            console.log("Event ID:", eventId);
+            console.log("Student ID:", studentId);
+
             const transactionId = await createTransactions({
                 orderId: response.razorpay_order_id,
                 paymentId: response.razorpay_payment_id,
                 eventId,
                 signature: response.razorpay_signature,
             });
-            console.log("Transaction ID:--", transactionId);
+            console.log("Transaction ID created:", transactionId);
 
             if (!transactionId) {
                 throw new Error("Failed to create transaction");
@@ -157,31 +163,48 @@ const EventRegistrationPage = () => {
 
             toast.success("Payment successful! You have been registered for the event.")
 
-            console.log({
-                transactionId,
-                eventId,
-                studentId,
-                isUsed: false,
-            }, 'token details');
-
-            // Generate token and redirect
-            if (!studentId) {
-                throw new Error("Student ID not found");
-            }
-
-            const { tokenId, uniqueCode } = await createToken({
+            console.log("Token creation parameters:", {
                 transactionId,
                 eventId,
                 studentId,
                 isUsed: false,
             });
 
-            if (tokenId) {
-                toast.success("Token generated successfully! Please check your email for the token details.");
-                router.push(`/register/receipt/?token=${tokenId}&uniqueCode=${uniqueCode}`);
+            // Generate token and redirect
+            if (!studentId) {
+                throw new Error("Student ID not found");
+            }
+
+            const tokenResult = await createToken({
+                transactionId,
+                eventId,
+                studentId,
+                isUsed: false,
+            });
+
+            console.log("Token creation result:", tokenResult);
+
+            if (tokenResult?.tokenId) {
+                toast.success("Token generated successfully! Redirecting to receipt...");
+                console.log("Redirecting to receipt with token:", tokenResult.tokenId);
+                
+                // Set loading state before navigation
+                setIsNavigatingToReceipt(true);
+                
+                // Navigate to receipt page
+                router.push(`/register/receipt/?token=${tokenResult.tokenId}`);
+            } else {
+                throw new Error("Failed to create token - no tokenId returned");
             }
         } catch (error) {
-            console.error("Transaction creation error:", error);
+            console.error("=== PAYMENT SUCCESS ERROR ===");
+            console.error("Error details:", error);
+            console.error("Error message:", error instanceof Error ? error.message : "Unknown error");
+            console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
+            
+            // Reset loading state on error
+            setIsNavigatingToReceipt(false);
+            
             toast.error(
                 `Payment successful but registration failed. Please contact support with payment ID: ${response.razorpay_payment_id}`
             );
@@ -218,9 +241,12 @@ const EventRegistrationPage = () => {
         }
 
         try {
+            console.log("Creating Razorpay order for event:", eventId);
             const orderData = await createRazorpayOrder({ eventId });
+            console.log("Order data received:", orderData);
+            
             if (!orderData?.id) {
-                throw new Error("Failed to create payment order");
+                throw new Error("Failed to create payment order - no order ID returned");
             }
 
             const razorpayOptions = {
@@ -340,6 +366,32 @@ const EventRegistrationPage = () => {
                                 Back to Events
                             </Button>
                         </Link>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    // Full page loader while navigating to receipt
+    if (isNavigatingToReceipt) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <Card className="mx-auto text-center max-w-md">
+                    <CardContent className="pt-8 pb-8">
+                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                            Processing Your Registration
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                            Please wait while we prepare your receipt and confirmation details...
+                        </p>
+                        <div className="flex items-center justify-center space-x-2 text-sm text-blue-600">
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

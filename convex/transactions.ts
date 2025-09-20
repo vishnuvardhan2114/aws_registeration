@@ -68,5 +68,31 @@ export const getTransactionById = query({
   },
 });
 
+export const getAllTransactions = query({
+  args: {},
+  returns: v.array(v.object({
+    _id: v.id("transactions"),
+    _creationTime: v.number(),
+    paymentId: v.string(),
+    orderId: v.string(),
+    amount: v.number(),
+    currency: v.string(),
+    status: v.string(),
+    method: v.string(),
+    bank: v.optional(v.string()),
+    wallet: v.optional(v.string()),
+    vpa: v.optional(v.string()),
+    email: v.string(),
+    contact: v.string(),
+    fee: v.number(),
+    tax: v.number(),
+    created_at: v.string(),
+    rawResponse: v.any(),
+  })),
+  handler: async (ctx) => {
+    return await ctx.db.query("transactions").order("desc").collect();
+  },
+});
+
 
 

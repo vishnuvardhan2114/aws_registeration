@@ -19,7 +19,13 @@ export const addTransaction = mutation({
     status: v.string(),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("transactions", args);
+    const transactionToInsert = {
+      paymentId: args.paymentId,
+      amount: args.amount,
+      orderId: args.orderId,
+      status: args.status,
+    };
+    return await ctx.db.insert("transactions", transactionToInsert);
   },
 });
 

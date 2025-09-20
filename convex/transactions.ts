@@ -51,7 +51,22 @@ export const insertTransaction = mutation({
   },
 });
 
-
+export const getTransactionById = query({
+  args: { transactionId: v.id("transactions") },
+  returns: v.union(v.object({
+    _id: v.id("transactions"),
+    _creationTime: v.number(),
+    paymentId: v.string(),
+    orderId: v.string(),
+    amount: v.number(),
+    currency: v.string(),
+    status: v.string(),
+    method: v.string(),
+  }), v.null()),
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.transactionId);
+  },
+});
 
 
 

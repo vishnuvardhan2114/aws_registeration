@@ -21,6 +21,8 @@ const RegistrationPage = () => {
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
 
+  const eventId = "j577vrpbm7jbegzt773fpgpkcd7qzgmt" as Id<'events'>;
+
   const generateUploadStorageUrl = useMutation(api.storage.generateUploadUrl)
   const addOrUpdateStudent = useMutation(api.students.addOrUpdateStudent)
   const createRazorpayOrder = useAction(api.razorpay.createRazorpayOrder);
@@ -67,6 +69,7 @@ const RegistrationPage = () => {
     }
     try {
       await addOrUpdateStudent(formatedData)
+      await handlePayment()
     }
     catch (error) {
       console.log("An error occurred during registration. Please try again.", error)
@@ -81,27 +84,38 @@ const RegistrationPage = () => {
     }
     setProcessingPayment(true);
     try {
-      const eventId = "j57cry93hm1ac0w6b3tdpzk34d7qxzbd" as Id<'events'>;
-      const data = await createRazorpayOrder({ eventId: "j57cry93hm1ac0w6b3tdpzk34d7qxzbd" as Id<'events'> });
+      const data = await createRazorpayOrder({ eventId: eventId });
+
+      console.log("Razorpay order data:", data);
 
       if (!data?.id) throw new Error("Order creation failed");
+
+      console.log('razorpayKeyId', process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID)
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         eventId: eventId,
         currency: "INR",
         name: "AWS Registration",
-        description: "Payment for Visa Application",
+        description: "Payment for AWS event",
         order_id: data.id,
         handler: async (response: any) => {
           try {
+
+            console.log("Razorpay payment response:", response);
+            console.log("Creating transaction with response data:", {
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              amount: response.razorpay_amount,
+              status: response.razorpay_status,
+            });
 
             const transactions = await createTransactions({
               orderId: response.razorpay_order_id,
               paymentId: response.razorpay_payment_id,
               amount: response.razorpay_amount,
               status: response.razorpay_status,
-              })
+            })
 
             if (transactions) {
               // send receipt to the user

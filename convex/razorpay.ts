@@ -10,6 +10,10 @@ export const createRazorpayOrder = action({
   },
   handler: async (ctx, args) => {
     try {
+      console.log("Creating Razorpay order for eventId:", args.eventId);
+      console.log(process.env.RAZORPAY_KEY_ID, "keyid");
+      console.log(process.env.RAZORPAY_KEY_SECRET, "key secret");
+
       const razorpay = new Razorpay({
         key_id: process.env.RAZORPAY_KEY_ID,
         key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -31,17 +35,7 @@ export const createRazorpayOrder = action({
         amount: amountInPaise,
         currency: "INR",
         receipt: `receipt_${Date.now()}`,
-        transfers: [
-          {
-            account: "acc_Qqt7zwC7Btmg1p",
-            amount: amountInPaise,
-            currency: "INR",
-            notes: {
-              purpose: "Visa application via Getavisa",
-            },
-            on_hold: false,
-          },
-        ],
+        payment_capture: 1,
       };
 
       const order = await razorpay.orders.create(options);

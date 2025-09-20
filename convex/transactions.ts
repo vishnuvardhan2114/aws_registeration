@@ -10,36 +10,25 @@ export const getTransaction = query({
   },
 });
 
-// Add a new transaction
-export const addTransaction = mutation({
+export const insertTransaction = mutation({
   args: {
     paymentId: v.string(),
-    amount: v.float64(),
     orderId: v.string(),
+    amount: v.number(),
+    currency: v.string(),
     status: v.string(),
+    method: v.string(),
+    bank: v.optional(v.string()),
+    wallet: v.optional(v.string()),
+    vpa: v.optional(v.string()),
+    email: v.string(),
+    contact: v.string(),
+    fee: v.number(),
+    tax: v.number(),
+    created_at: v.string(),
+    rawResponse: v.any(),
   },
   handler: async (ctx, args) => {
-    const transactionToInsert = {
-      paymentId: args.paymentId,
-      amount: args.amount,
-      orderId: args.orderId,
-      status: args.status,
-    };
-    return await ctx.db.insert("transactions", transactionToInsert);
-  },
-});
-
-// Update a transaction by ID
-export const updateTransaction = mutation({
-  args: {
-    transactionId: v.id("transactions"),
-    paymentId: v.optional(v.string()),
-    amount: v.optional(v.float64()),
-    orderId: v.optional(v.string()),
-    status: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const { transactionId, ...patch } = args;
-    await ctx.db.patch(transactionId, patch);
+    await ctx.db.insert("transactions", args);
   },
 });

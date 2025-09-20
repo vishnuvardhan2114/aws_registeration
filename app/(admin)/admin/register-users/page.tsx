@@ -1,21 +1,27 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useMutation, useQuery } from "convex/react";
+import { useMemo, useState } from "react";
 // Id type import removed as it's not used in this implementation
+import AdminAddUserDialog from "@/app/components/AdminAddUserDialog";
+import AdminBulkAddUserDialog from "@/app/components/AdminBulkAddUserDialog";
 import {
-  Search,
-  User,
-  Mail,
-  Phone,
-  Calendar,
-  Download,
-  Eye,
-  Edit,
-  Trash2,
-  Plus,
-} from "lucide-react";
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/app/components/ui/avatar";
+import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/app/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
+import { Input } from "@/app/components/ui/input";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -24,23 +30,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/app/components/ui/table";
+import { Id } from "@/convex/_generated/dataModel";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Badge } from "@/app/components/ui/badge";
-import { Skeleton } from "@/app/components/ui/skeleton";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/app/components/ui/avatar";
-import AdminAddUserDialog from "@/app/components/AdminAddUserDialog";
+  Calendar,
+  Download,
+  Edit,
+  Eye,
+  Mail,
+  Phone,
+  Search,
+  Trash2,
+  User,
+} from "lucide-react";
 
 // Student type is defined inline to avoid unused type warning
 
@@ -83,9 +84,14 @@ const getBatchBadgeColor = (batchYear: number) => {
 const RegisterStudentsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [batchFilter, setBatchFilter] = useState<string>("all");
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedStudentData, setSelectedStudentData] = useState({});
+  const [isEdit, setIsEdit] = useState(false);
 
   const studentsData = useQuery(api.students.getAllStudents);
   const students = useMemo(() => studentsData || [], [studentsData]);
+  const deleteStudent = useMutation(api.students.deleteStudent);
+
   const isLoading = studentsData === undefined;
 
   const filteredStudents = useMemo(() => {
@@ -117,6 +123,78 @@ const RegisterStudentsPage = () => {
     return registrationDate > sevenDaysAgo;
   }).length;
 
+  const handleDeleteStudent = async (id: Id<"students">) => {
+    if (!id) {
+      return;
+    }
+
+    console.log("id: ", id);
+
+    try {
+      await deleteStudent({ id });
+    } catch (error) {
+      console.log("Error occured deleting student: ", error);
+      alert("Error Occured deleting student");
+    }
+  };
+
+  const onOpen = () => {
+    setIsEdit(false);
+    setIsOpen(true);
+  };
+
+  const onClose = (val: boolean) => {
+    if (!val) {
+      setIsOpen(false);
+    }
+  };
+
+  const onEdit = (id: Id<"students">) => {
+    const selectedStudent = students.find((student) => student._id === id);
+    if (selectedStudent) {
+      setSelectedStudentData(selectedStudent);
+      setIsOpen(true);
+      setIsEdit(true);
+    } else {
+      console.log("Student not found");
+    }
+  };
+
+  const handleExportToCsv = () => {
+    const csvContent = [
+      [
+        "name",
+        "phoneNumber",
+        "email",
+        "dateOfBirth",
+        "batchYear",
+        "_creationTime",
+        "_id",
+      ],
+      ...students.map((student) => [
+        student.name,
+        student.phoneNumber,
+        student.email,
+        student.dateOfBirth,
+        student.batchYear,
+        student._creationTime,
+        student._id,
+      ]),
+    ]
+      .map((e) => e.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "students.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -130,11 +208,18 @@ const RegisterStudentsPage = () => {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
+          <Button onClick={handleExportToCsv} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <AdminAddUserDialog />
+          <AdminBulkAddUserDialog />
+          <AdminAddUserDialog
+            isOpen={isOpen}
+            isEdit={isEdit}
+            onOpen={onOpen}
+            onClose={onClose}
+            selectedStudentData={selectedStudentData}
+          />
         </div>
       </div>
 
@@ -348,13 +433,26 @@ const RegisterStudentsPage = () => {
                         <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          onClick={() => onEdit(student._id)}
+                          variant="ghost"
+                          size="sm"
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 cursor-pointer"
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                "Are you sure you want to delete this student?"
+                              )
+                            ) {
+                              handleDeleteStudent(student._id);
+                            }
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

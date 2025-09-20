@@ -1,7 +1,6 @@
 // convex/students.ts
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-
 
 export const getFileUrl = query({
   args: { storageId: v.id("_storage") },
@@ -10,7 +9,6 @@ export const getFileUrl = query({
     return { url }; // url can be string | null
   },
 });
-
 
 // Get a single student by ID
 export const getStudent = query({
@@ -32,14 +30,14 @@ export const getStudent = query({
   handler: async (ctx, args) => {
     const student = await ctx.db.get(args.studentId);
     if (!student) return null;
-    
+
     // Resolve image URL if storage ID exists
     let imageUrl: string | undefined = undefined;
     if (student.imageStorageId) {
       const url = await ctx.storage.getUrl(student.imageStorageId);
       imageUrl = url || undefined;
     }
-    
+
     return {
       ...student,
       imageUrl,
@@ -129,7 +127,7 @@ export const getAllStudents = query({
   ),
   handler: async (ctx) => {
     const students = await ctx.db.query("students").order("desc").collect();
-    
+
     // Resolve image URLs for each student
     const studentsWithUrls = await Promise.all(
       students.map(async (student) => {
@@ -138,7 +136,7 @@ export const getAllStudents = query({
           const url = await ctx.storage.getUrl(student.imageStorageId);
           imageUrl = url || undefined;
         }
-        
+
         return {
           ...student,
           imageUrl,
@@ -147,5 +145,16 @@ export const getAllStudents = query({
     );
 
     return studentsWithUrls;
+  },
+});
+
+export const deleteStudent = mutation({
+  args: { id: v.id("students") },
+  handler: async (ctx, args) => {
+    try {
+      ctx.db.delete(args.id);
+    } catch (error) {
+      throw new ConvexError(`Error occured deleting student: ${error}`);
+    }
   },
 });

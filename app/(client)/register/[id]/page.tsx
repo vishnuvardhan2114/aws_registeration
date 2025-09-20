@@ -2,15 +2,12 @@
 "use client";
 
 import RegistrationForm from '@/app/components/RegistrationForm';
+import PaymentConfirmation from '@/app/components/PaymentConfirmation';
 import { Button } from '@/app/components/ui/button';
 import {
     Card,
-    CardContent,
-    CardHeader
+    CardContent
 } from '@/app/components/ui/card';
-import {
-    Skeleton
-} from '@/app/components/ui/skeleton';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
 import type { RegistrationFormData } from '@/lib/types/registration';
@@ -24,6 +21,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Image from 'next/image';
+import type { RegistrationFormInitialValues } from '@/lib/types/registration';
 
 declare global {
     interface Window {
@@ -40,6 +38,8 @@ const EventRegistrationPage = () => {
     const [registrationCompleted, setRegistrationCompleted] = useState(false);
     const [studentId, setStudentId] = useState<Id<"students"> | null>(null);
     const [isNavigatingToReceipt, setIsNavigatingToReceipt] = useState(false);
+    const [savedFormData, setSavedFormData] = useState<RegistrationFormInitialValues | null>(null);
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
     const event = useQuery(api.events.getEvent, { eventId });
     const generateUploadStorageUrl = useMutation(api.storage.generateUploadUrl);
@@ -49,6 +49,21 @@ const EventRegistrationPage = () => {
     const createToken = useMutation(api.tokens.addToken);
 
     const isLoading = event === undefined;
+
+    // Load saved form data from localStorage
+    useEffect(() => {
+        try {
+            const savedData = localStorage.getItem('studentRegistrationData');
+            if (savedData) {
+                const parsedData = JSON.parse(savedData) as RegistrationFormInitialValues;
+                setSavedFormData(parsedData);
+            }
+        } catch (error) {
+            console.error('Error loading saved form data:', error);
+            // Clear corrupted data
+            localStorage.removeItem('studentRegistrationData');
+        }
+    }, []);
 
     useEffect(() => {
         // Check if Razorpay is already loaded
@@ -146,67 +161,65 @@ const EventRegistrationPage = () => {
         response: any,
     ): Promise<void> => {
         try {
-            console.log("=== PAYMENT SUCCESS HANDLER STARTED ===");
-            console.log("Response from Razorpay:", response);
-            console.log("Event ID:", eventId);
-            console.log("Student ID:", studentId);
+            // Set loading state immediately for better UX
+            setIsNavigatingToReceipt(true);
+            
+            // Show immediate success message
+            toast.success("Payment successful! Processing your registration...");
 
-            const transactionId = await createTransactions({
-                orderId: response.razorpay_order_id,
-                paymentId: response.razorpay_payment_id,
-                eventId,
-                signature: response.razorpay_signature,
-            });
-            console.log("Transaction ID created:", transactionId);
+            // Set a timeout fallback to ensure redirect happens
+            const redirectTimeout = setTimeout(() => {
+                console.warn("Payment processing timeout - redirecting anyway");
+                router.push(`/register/receipt/?paymentId=${response.razorpay_payment_id}`);
+            }, 10000); // 10 second timeout
 
-            if (!transactionId) {
-                throw new Error("Failed to create transaction");
-            }
+            try {
+                // Create transaction
+                const transactionId = await createTransactions({
+                    orderId: response.razorpay_order_id,
+                    paymentId: response.razorpay_payment_id,
+                    eventId,
+                    signature: response.razorpay_signature,
+                });
 
-            toast.success("Payment successful! You have been registered for the event.")
+                if (!transactionId) {
+                    throw new Error("Failed to create transaction");
+                }
 
-            console.log("Token creation parameters:", {
-                transactionId,
-                eventId,
-                studentId,
-                isUsed: false,
-            });
+                if (!studentId) {
+                    throw new Error("Student ID not found");
+                }
 
-            // Generate token and redirect
-            if (!studentId) {
-                throw new Error("Student ID not found");
-            }
+                // Create token
+                const finalTokenResult = await createToken({
+                    transactionId,
+                    eventId,
+                    studentId,
+                    isUsed: false,
+                });
 
-            const tokenResult = await createToken({
-                transactionId,
-                eventId,
-                studentId,
-                isUsed: false,
-            });
+                // Clear timeout since we succeeded
+                clearTimeout(redirectTimeout);
 
-            console.log("Token creation result:", tokenResult);
-
-            if (tokenResult?.tokenId) {
-                toast.success("Token generated successfully! Redirecting to receipt...");
-                console.log("Redirecting to receipt with token:", tokenResult.tokenId);
-
-                // Set loading state before navigation
-                setIsNavigatingToReceipt(true);
-
-                // Navigate to receipt page
-                router.push(`/register/receipt/?token=${tokenResult.tokenId}`);
-            } else {
-                throw new Error("Failed to create token - no tokenId returned");
+                if (finalTokenResult?.tokenId) {
+                    // Clear saved form data after successful payment
+                    localStorage.removeItem('studentRegistrationData');
+                    
+                    // Navigate to receipt page immediately
+                    router.push(`/register/receipt/?token=${finalTokenResult.tokenId}`);
+                } else {
+                    throw new Error("Failed to create token - no tokenId returned");
+                }
+            } catch (processingError) {
+                // Clear timeout on error
+                clearTimeout(redirectTimeout);
+                throw processingError;
             }
         } catch (error) {
-            console.error("=== PAYMENT SUCCESS ERROR ===");
-            console.error("Error details:", error);
-            console.error("Error message:", error instanceof Error ? error.message : "Unknown error");
-            console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
-
             // Reset loading state on error
             setIsNavigatingToReceipt(false);
 
+            console.error("Payment success processing error:", error);
             toast.error(
                 `Payment successful but registration failed. Please contact support with payment ID: ${response.razorpay_payment_id}`
             );
@@ -224,7 +237,6 @@ const EventRegistrationPage = () => {
 
 
     const handlePayment = async (): Promise<void> => {
-
         if (!event) {
             toast.error("Event not found. Please refresh the page and try again.");
             return;
@@ -242,10 +254,10 @@ const EventRegistrationPage = () => {
             return;
         }
 
+        setIsProcessingPayment(true);
+
         try {
-            console.log("Creating Razorpay order for event:", eventId);
             const orderData = await createRazorpayOrder({ eventId });
-            console.log("Order data received:", orderData);
 
             if (!orderData?.id) {
                 throw new Error("Failed to create payment order - no order ID returned");
@@ -260,18 +272,29 @@ const EventRegistrationPage = () => {
                 order_id: orderData.id,
                 prefill: { name: "", email: "", contact: "" },
                 theme: { color: "#2563eb" },
-                handler: (response: any) =>
-                    handlePaymentSuccess(response),
-                modal: { ondismiss: handleModalDismiss },
+                handler: (response: any) => {
+                    setIsProcessingPayment(false);
+                    // Handle payment success immediately
+                    handlePaymentSuccess(response);
+                },
+                modal: { 
+                    ondismiss: () => {
+                        setIsProcessingPayment(false);
+                        handleModalDismiss();
+                    }
+                },
             };
 
-            // ✅ Step 4: Initialize and open Razorpay
+            // Initialize and open Razorpay
             const rzp = new window.Razorpay(razorpayOptions);
-            rzp.on("payment.failed", handlePaymentFailure);
+            rzp.on("payment.failed", (error: any) => {
+                setIsProcessingPayment(false);
+                handlePaymentFailure(error);
+            });
             rzp.open();
 
         } catch (error) {
-            console.error("Payment initialization error:", error);
+            setIsProcessingPayment(false);
             const errorMessage =
                 error instanceof Error
                     ? `Payment error: ${error.message}`
@@ -297,7 +320,7 @@ const EventRegistrationPage = () => {
             name: data.fullName,
             email: data.email,
             phoneNumber: data.phoneNumber,
-            dateOfBirth: data.dateOfBirth.toISOString().split('T')[0],
+            dateOfBirth: `${data.dateOfBirth.getFullYear()}-${String(data.dateOfBirth.getMonth() + 1).padStart(2, '0')}-${String(data.dateOfBirth.getDate()).padStart(2, '0')}`,
             imageStorageId: storageId,
             batchYear: data.batch,
         };
@@ -307,6 +330,19 @@ const EventRegistrationPage = () => {
             setStudentId(studentId);
             setRegistrationCompleted(true);
 
+            // Save student data to local storage for auto-fill
+            const studentDataForStorage = {
+                fullName: data.fullName,
+                email: data.email,
+                phoneNumber: data.phoneNumber,
+                dateOfBirth: `${data.dateOfBirth.getFullYear()}-${String(data.dateOfBirth.getMonth() + 1).padStart(2, '0')}-${String(data.dateOfBirth.getDate()).padStart(2, '0')}`,
+                batch: data.batch,
+                // Note: We don't store the image file in localStorage as it's too large
+                // The image will need to be re-uploaded if the user returns
+            };
+
+            localStorage.setItem('studentRegistrationData', JSON.stringify(studentDataForStorage));
+            
             toast.success("Registration successful! Please proceed to payment.");
         } catch (error) {
             console.error("Registration error:", error);
@@ -327,6 +363,12 @@ const EventRegistrationPage = () => {
         } else {
             return { status: 'ended', label: 'Ended', className: 'bg-gray-100 text-gray-800 hover:bg-gray-100' };
         }
+    };
+
+    const clearSavedFormData = () => {
+        localStorage.removeItem('studentRegistrationData');
+        setSavedFormData(null);
+        toast.success("Form data cleared. You can now fill in new information.");
     };
 
     if (isLoading) {
@@ -361,25 +403,23 @@ const EventRegistrationPage = () => {
     // Full page loader while navigating to receipt
     if (isNavigatingToReceipt) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <Card className="mx-auto text-center max-w-md">
-                    <CardContent className="pt-8 pb-8">
-                        <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <div className="w-8 h-8 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            Processing Your Registration
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                            Please wait while we prepare your receipt and confirmation details...
-                        </p>
-                        <div className="flex items-center justify-center space-x-2 text-sm text-yellow-600">
-                            <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse"></div>
-                            <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                            <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                        </div>
-                    </CardContent>
-                </Card>
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="text-center max-w-md mx-auto px-4">
+                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    <h3 className="text-2xl font-semibold text-slate-900 mb-3">
+                        Payment Successful!
+                    </h3>
+                    <p className="text-slate-600 mb-6 leading-relaxed">
+                        Your registration is being processed. Redirecting to your receipt...
+                    </p>
+                    <div className="flex items-center justify-center space-x-2 text-sm text-green-600">
+                        <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -408,32 +448,45 @@ const EventRegistrationPage = () => {
             <div className="container mx-auto pb-8 ">
                 <div className="">
                     {registrationCompleted && studentId ? (
-                        <Card className="text-center py-12">
-                            <CardHeader>
-                                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-semibold text-yellow-800 mb-2">Registration Successful!</h3>
-                                <p className="text-gray-600 mb-6">
-                                    Your registration has been completed. Please proceed to payment to confirm your spot.
-                                </p>
-                                <Button
-                                    onClick={handlePayment}
-                                    disabled={!isRegistrationOpen || !razorpayLoaded}
-                                    className="w-full max-w-md mx-auto bg-red-800 hover:bg-red-900 text-white"
-                                    size="lg"
-                                >
-                                    {!razorpayLoaded ? "Loading Payment..." : `Pay ₹${event.amount}`}
-                                </Button>
-                            </CardHeader>
-                        </Card>
-                    ) : (
-                        <RegistrationForm
-                            onSubmit={handleRegistrationSubmit}
-                            disabled={!isRegistrationOpen}
+                        <PaymentConfirmation
+                            eventName={event.name}
+                            amount={event.amount}
+                            onPaymentClick={handlePayment}
+                            isRazorpayLoading={!razorpayLoaded}
+                            isRegistrationOpen={isRegistrationOpen}
+                            isLoading={isProcessingPayment}
                         />
+                    ) : (
+                        <div>
+                            {savedFormData && (
+                                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h4 className="font-medium text-blue-900">Form Auto-Filled</h4>
+                                                <p className="text-sm text-blue-700">Your previous registration data has been loaded. You can edit or clear it.</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={clearSavedFormData}
+                                            className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-colors"
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            <RegistrationForm
+                                onSubmit={handleRegistrationSubmit}
+                                disabled={!isRegistrationOpen}
+                                initialValues={savedFormData || undefined}
+                            />
+                        </div>
                     )}
                 </div>
             </div>

@@ -24,6 +24,7 @@ export default function RegistrationForm({
   isLoading = false,
   className,
   disabled = false,
+  initialValues,
 }: RegistrationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { imageState, handleImageUpload: handleImageState, removeImage } = useImageUpload()
@@ -31,11 +32,11 @@ export default function RegistrationForm({
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
     defaultValues: {
-      fullName: '',
-      dateOfBirth: undefined,
-      batch: undefined,
-      email: '',
-      phoneNumber: '',
+      fullName: initialValues?.fullName || '',
+      dateOfBirth: initialValues?.dateOfBirth ? new Date(initialValues.dateOfBirth + 'T00:00:00') : undefined,
+      batch: initialValues?.batch || undefined,
+      email: initialValues?.email || '',
+      phoneNumber: initialValues?.phoneNumber || '',
       image: null
     }
   })
@@ -206,7 +207,15 @@ export default function RegistrationForm({
                         <CalendarComponent
                           mode="single"
                           selected={field.value}
-                          onSelect={field.onChange}
+                          onSelect={(date) => {
+                            if (date) {
+                              // Create a new date with local timezone to avoid day shift
+                              const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                              field.onChange(localDate);
+                            } else {
+                              field.onChange(date);
+                            }
+                          }}
                           captionLayout="dropdown"
                           fromYear={1950}
                           toYear={new Date().getFullYear()}

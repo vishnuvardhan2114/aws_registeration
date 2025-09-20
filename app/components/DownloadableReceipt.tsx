@@ -212,8 +212,6 @@ export default function DownloadableReceipt({
     const amount = registrationDetails.transaction.amount;
     const paymentMethod = registrationDetails.transaction.method;
     const paymentStatus = registrationDetails.transaction.status;
-    const tokenId = registrationDetails.token._id;
-    const transactionId = registrationDetails.transaction._id;
     const paymentId = registrationDetails.transaction.paymentId;
     const registrationDate = new Date(registrationDetails.token._creationTime);
     const currencySymbol = "₹";
@@ -223,38 +221,39 @@ export default function DownloadableReceipt({
         <>
             {/* Download button */}
             {mode === "download" && (
-                <div className="mb-4">
-                    <Button
-                        onClick={handleDownload}
-                        disabled={isDownloading}
-                        className="w-full max-w-[300px] m-auto bg-[#991b1b] hover:bg-[#7f1d1d] disabled:bg-[#f87171] h-12 text-[#ffffff] flex items-center justify-center space-x-2 text-base"
-                    >
-                        {isDownloading ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>Generating PDF...</span>
-                            </>
-                        ) : (
-                            <>
-                                <Download className="w-5 h-5" />
-                                <span>Download PDF Receipt</span>
-                            </>
-                        )}
-                    </Button>
+                // <div className="mb-4">
+                //     <Button
+                //         onClick={handleDownload}
+                //         disabled={isDownloading}
+                //         className="w-full max-w-[300px] m-auto bg-[#991b1b] hover:bg-[#7f1d1d] disabled:bg-[#f87171] h-12 text-[#ffffff] flex items-center justify-center space-x-2 text-base"
+                //     >
+                //         {isDownloading ? (
+                //             <>
+                //                 <Loader2 className="w-5 h-5 animate-spin" />
+                //                 <span>Generating PDF...</span>
+                //             </>
+                //         ) : (
+                //             <>
+                //                 <Download className="w-5 h-5" />
+                //                 <span>Download PDF Receipt</span>
+                //             </>
+                //         )}
+                //     </Button>
 
-                    {/* Error Display */}
-                    {error && (
-                        <div className="mt-3 p-3 bg-[#fef2f2] border border-[#fca5a5] text-[#dc2626] rounded max-w-[300px] m-auto">
-                            <p className="text-sm">{error}</p>
-                            <button
-                                onClick={clearError}
-                                className="text-xs underline mt-1 hover:no-underline"
-                            >
-                                Dismiss
-                            </button>
-                        </div>
-                    )}
-                </div>
+                //     {/* Error Display */}
+                //     {error && (
+                //         <div className="mt-3 p-3 bg-[#fef2f2] border border-[#fca5a5] text-[#dc2626] rounded max-w-[300px] m-auto">
+                //             <p className="text-sm">{error}</p>
+                //             <button
+                //                 onClick={clearError}
+                //                 className="text-xs underline mt-1 hover:no-underline"
+                //             >
+                //                 Dismiss
+                //             </button>
+                //         </div>
+                //     )}
+                // </div>
+                <></>
             )}
 
             {/* PDF Content */}
@@ -469,8 +468,8 @@ export default function DownloadableReceipt({
                                 Event Information
                             </h3>
                             
-                            <div className="flex justify-between items-start gap-6">
-                                {/* Left side - Event Details */}
+                            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 lg:gap-6">
+                                {/* Event Details */}
                                 <div className="flex-1">
                                     <p
                                         className="text-lg font-semibold"
@@ -505,9 +504,9 @@ export default function DownloadableReceipt({
                                     </p>
                                 </div>
 
-                                {/* Right side - Barcode */}
+                                {/* Barcode - Mobile: below food info, Desktop: right side */}
                                 {registrationDetails.token.uniqueCode && (
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center lg:items-end">
                                         <p
                                             className="text-xs text-[#6b7280] mb-2"
                                             style={{

@@ -17,12 +17,22 @@ export type RegistrationSubmissionData = Omit<
   age: number;
 };
 
+// Initial values type for auto-filling form
+export type RegistrationFormInitialValues = {
+  fullName?: string;
+  email?: string;
+  phoneNumber?: string;
+  dateOfBirth?: string; // ISO string format (YYYY-MM-DD)
+  batch?: number;
+};
+
 // Component props interface
 export interface RegistrationFormProps {
   onSubmit: (data: RegistrationFormData) => Promise<void>;
   isLoading?: boolean;
   className?: string;
   disabled?: boolean;
+  initialValues?: RegistrationFormInitialValues;
 }
 
 // Batch year type

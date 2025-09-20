@@ -378,8 +378,16 @@ export const getTokenByUniqueCode = query({
     // Resolve student image URL if storage ID exists
     let imageUrl: string | undefined = undefined;
     if (student.imageStorageId) {
-      const url = await ctx.storage.getUrl(student.imageStorageId);
-      imageUrl = url || undefined;
+      try {
+        const url = await ctx.storage.getUrl(student.imageStorageId);
+        imageUrl = url || undefined;
+        console.log("Image URL resolved:", url);
+      } catch (error) {
+        console.error("Error getting image URL:", error);
+        imageUrl = undefined;
+      }
+    } else {
+      console.log("No imageStorageId found for student:", student._id);
     }
 
     return {

@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { 
   Camera, 
-  Scan, 
   CheckCircle, 
   AlertCircle, 
   User, 
@@ -35,6 +34,20 @@ const Scanner = () => {
     scannedResult ? { uniqueCode: scannedResult } : "skip"
   );
   const markTokenAsUsed = useMutation(api.tokens.markTokenAsUsed);
+
+  // Calculate age from date of birth
+  const calculateAge = (dateOfBirth: string): number => {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
 
   const startScan = useCallback(async () => {
     try {
@@ -434,7 +447,7 @@ const Scanner = () => {
                         <h4 className="font-bold text-lg text-slate-900 dark:text-white">
                           {tokenData.student.name}
                         </h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <p className="text-xs text-slate-500 dark:text-slate-500">
                           {tokenData.student.email}
                         </p>
                       </div>
@@ -451,6 +464,9 @@ const Scanner = () => {
                         <p className="text-slate-500 dark:text-slate-400 mb-1">Batch</p>
                         <p className="font-semibold text-slate-900 dark:text-white">
                           {tokenData.student.batchYear}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                          Age: {calculateAge(tokenData.student.dateOfBirth)}
                         </p>
                       </div>
                     </div>

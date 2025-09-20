@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 const Loader: React.FC = () => {
   const [progress, setProgress] = useState(0);
@@ -92,14 +93,15 @@ const Loader: React.FC = () => {
       />
       
       <div ref={loaderRef} className="text-center px-4 sm:px-6 lg:px-8">
-        {/* Main text */}
+        {/* Logo and text */}
         <div ref={textRef} className="mb-8 sm:mb-12">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-2 sm:mb-4 tracking-tight leading-tight">
-            AWS
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-300 font-light tracking-wider">
-            REGISTRATION
-          </p>
+          <div className="mb-4 sm:mb-6 flex justify-center">
+            <Image 
+              src="/SGA.webp" 
+              alt="SGA Logo" 
+              className="h-16 sm:h-20 md:h-24 lg:h-28 xl:h-32 w-auto object-contain"
+            />
+          </div>
         </div>
 
         {/* Progress bar container */}

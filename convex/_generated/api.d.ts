@@ -16,6 +16,7 @@ import type {
 import type * as auth from "../auth.js";
 import type * as events from "../events.js";
 import type * as http from "../http.js";
+import type * as payments from "../payments.js";
 import type * as razorpay from "../razorpay.js";
 import type * as storage from "../storage.js";
 import type * as students from "../students.js";
@@ -40,6 +41,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   events: typeof events;
   http: typeof http;
+  payments: typeof payments;
   razorpay: typeof razorpay;
   storage: typeof storage;
   students: typeof students;

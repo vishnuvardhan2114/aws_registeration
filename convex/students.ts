@@ -115,17 +115,18 @@ export const updateStudent = mutation({
 // Get all students
 export const getAllStudents = query({
   args: {},
-  returns: v.array(v.object({
-    _id: v.id("students"),
-    _creationTime: v.number(),
-    name: v.string(),
-    email: v.string(),
-    phoneNumber: v.string(),
-    dateOfBirth: v.string(),
-    imageStorageId: v.optional(v.id("_storage")),
-    imageUrl: v.optional(v.string()),
-    batchYear: v.number(),
-  })),
+  returns: v.array(
+    v.object({
+      _id: v.id("students"),
+      _creationTime: v.number(),
+      name: v.string(),
+      email: v.string(),
+      phoneNumber: v.string(),
+      dateOfBirth: v.string(),
+      imageStorageId: v.optional(v.id("_storage")),
+      batchYear: v.number(),
+    })
+  ),
   handler: async (ctx) => {
     const students = await ctx.db.query("students").order("desc").collect();
     

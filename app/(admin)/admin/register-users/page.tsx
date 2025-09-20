@@ -295,7 +295,7 @@ const RegisterStudentsPage = () => {
                       <div className="flex items-center space-x-4">
                         <Avatar className="h-12 w-12">
                           <AvatarImage 
-                            src={student.imageStorageId ? `/api/storage/${student.imageStorageId}` : undefined} 
+                            src={student.imageUrl || undefined} 
                             alt={student.name}
                           />
                           <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">

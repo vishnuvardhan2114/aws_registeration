@@ -8,7 +8,7 @@ import { Label } from '@/app/components/ui/label'
 import { Checkbox } from '@/app/components/ui/checkbox'
 import { Calendar } from '@/app/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 import {
   Dialog,
@@ -52,6 +52,8 @@ const EventDialog: React.FC<EventDialogProps> = ({
     name: '',
     StartDate: null as Date | null,
     EndDate: null as Date | null,
+    StartTime: '',
+    EndTime: '',
     isFoodIncluded: false,
     amount: 0
   })
@@ -59,10 +61,15 @@ const EventDialog: React.FC<EventDialogProps> = ({
 
   useEffect(() => {
     if (event) {
+      const startDate = new Date(event.StartDate)
+      const endDate = new Date(event.EndDate)
+      
       setFormData({
         name: event.name,
-        StartDate: new Date(event.StartDate),
-        EndDate: new Date(event.EndDate),
+        StartDate: startDate,
+        EndDate: endDate,
+        StartTime: startDate.toTimeString().slice(0, 5), // HH:MM format
+        EndTime: endDate.toTimeString().slice(0, 5), // HH:MM format
         isFoodIncluded: event.isFoodIncluded,
         amount: event.amount
       })
@@ -71,6 +78,8 @@ const EventDialog: React.FC<EventDialogProps> = ({
         name: '',
         StartDate: null,
         EndDate: null,
+        StartTime: '',
+        EndTime: '',
         isFoodIncluded: false,
         amount: 0
       })
@@ -93,9 +102,27 @@ const EventDialog: React.FC<EventDialogProps> = ({
       newErrors.EndDate = 'End date is required'
     }
 
-    if (formData.StartDate && formData.EndDate) {
-      if (formData.EndDate <= formData.StartDate) {
-        newErrors.EndDate = 'End date must be after start date'
+    if (!formData.StartTime) {
+      newErrors.StartTime = 'Start time is required'
+    }
+
+    if (!formData.EndTime) {
+      newErrors.EndTime = 'End time is required'
+    }
+
+    if (formData.StartDate && formData.EndDate && formData.StartTime && formData.EndTime) {
+      const startDateTime = new Date(formData.StartDate)
+      const endDateTime = new Date(formData.EndDate)
+      
+      // Set time on dates
+      const [startHour, startMinute] = formData.StartTime.split(':').map(Number)
+      const [endHour, endMinute] = formData.EndTime.split(':').map(Number)
+      
+      startDateTime.setHours(startHour, startMinute, 0, 0)
+      endDateTime.setHours(endHour, endMinute, 0, 0)
+      
+      if (endDateTime <= startDateTime) {
+        newErrors.EndTime = 'End date/time must be after start date/time'
       }
     }
 
@@ -111,10 +138,22 @@ const EventDialog: React.FC<EventDialogProps> = ({
     e.preventDefault()
     
     if (validateForm()) {
+      // Combine date and time into ISO strings
+      const startDateTime = new Date(formData.StartDate!)
+      const endDateTime = new Date(formData.EndDate!)
+      
+      const [startHour, startMinute] = formData.StartTime.split(':').map(Number)
+      const [endHour, endMinute] = formData.EndTime.split(':').map(Number)
+      
+      startDateTime.setHours(startHour, startMinute, 0, 0)
+      endDateTime.setHours(endHour, endMinute, 0, 0)
+      
       onSave({
-        ...formData,
-        StartDate: formData.StartDate!.toISOString().split('T')[0],
-        EndDate: formData.EndDate!.toISOString().split('T')[0]
+        name: formData.name,
+        isFoodIncluded: formData.isFoodIncluded,
+        amount: formData.amount,
+        StartDate: startDateTime.toISOString(),
+        EndDate: endDateTime.toISOString()
       })
     }
   }
@@ -136,7 +175,7 @@ const EventDialog: React.FC<EventDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
             {event ? 'Edit Event' : 'Create New Event'}
@@ -164,61 +203,99 @@ const EventDialog: React.FC<EventDialogProps> = ({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="StartDate">Start Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start text-left font-normal ${
-                      !formData.StartDate && "text-muted-foreground"
-                    } ${errors.StartDate ? 'border-red-500' : ''}`}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.StartDate ? format(formData.StartDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.StartDate || undefined}
-                    onSelect={(date) => handleInputChange('StartDate', date || null)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.StartDate && (
-                <p className="text-sm text-red-500">{errors.StartDate}</p>
-              )}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="StartDate">Start Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start text-left font-normal ${
+                        !formData.StartDate && "text-muted-foreground"
+                      } ${errors.StartDate ? 'border-red-500' : ''}`}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.StartDate ? format(formData.StartDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.StartDate || undefined}
+                      onSelect={(date) => handleInputChange('StartDate', date || null)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.StartDate && (
+                  <p className="text-sm text-red-500">{errors.StartDate}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="EndDate">End Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start text-left font-normal ${
+                        !formData.EndDate && "text-muted-foreground"
+                      } ${errors.EndDate ? 'border-red-500' : ''}`}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.EndDate ? format(formData.EndDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.EndDate || undefined}
+                      onSelect={(date) => handleInputChange('EndDate', date || null)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.EndDate && (
+                  <p className="text-sm text-red-500">{errors.EndDate}</p>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="EndDate">End Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start text-left font-normal ${
-                      !formData.EndDate && "text-muted-foreground"
-                    } ${errors.EndDate ? 'border-red-500' : ''}`}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.EndDate ? format(formData.EndDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.EndDate || undefined}
-                    onSelect={(date) => handleInputChange('EndDate', date || null)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.EndDate && (
-                <p className="text-sm text-red-500">{errors.EndDate}</p>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="StartTime" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Start Time
+                </Label>
+                <Input
+                  id="StartTime"
+                  type="time"
+                  value={formData.StartTime}
+                  onChange={(e) => handleInputChange('StartTime', e.target.value)}
+                  className={errors.StartTime ? 'border-red-500' : ''}
+                />
+                {errors.StartTime && (
+                  <p className="text-sm text-red-500">{errors.StartTime}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="EndTime" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  End Time
+                </Label>
+                <Input
+                  id="EndTime"
+                  type="time"
+                  value={formData.EndTime}
+                  onChange={(e) => handleInputChange('EndTime', e.target.value)}
+                  className={errors.EndTime ? 'border-red-500' : ''}
+                />
+                {errors.EndTime && (
+                  <p className="text-sm text-red-500">{errors.EndTime}</p>
+                )}
+              </div>
             </div>
           </div>
 

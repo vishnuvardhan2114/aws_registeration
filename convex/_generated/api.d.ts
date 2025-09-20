@@ -23,6 +23,7 @@ import type * as tables_events from "../tables/events.js";
 import type * as tables_students from "../tables/students.js";
 import type * as tables_tokens from "../tables/tokens.js";
 import type * as tables_transactions from "../tables/transactions.js";
+import type * as tables_users from "../tables/users.js";
 import type * as tokens from "../tokens.js";
 import type * as transactions from "../transactions.js";
 
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   "tables/students": typeof tables_students;
   "tables/tokens": typeof tables_tokens;
   "tables/transactions": typeof tables_transactions;
+  "tables/users": typeof tables_users;
   tokens: typeof tokens;
   transactions: typeof transactions;
 }>;

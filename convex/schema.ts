@@ -4,9 +4,11 @@ import { students } from "./tables/students";
 import { tokens } from "./tables/tokens";
 import { transactions } from "./tables/transactions";
 import { authTables } from "@convex-dev/auth/server";
+import { users } from "./tables/users";
 
 export default defineSchema({
   ...authTables,
+  users,
   events,
   students,
   transactions,

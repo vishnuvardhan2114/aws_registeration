@@ -74,3 +74,21 @@ export const updateStudent = mutation({
     await ctx.db.patch(studentId, patch);
   },
 });
+
+// Get all students
+export const getAllStudents = query({
+  args: {},
+  returns: v.array(v.object({
+    _id: v.id("students"),
+    _creationTime: v.number(),
+    name: v.string(),
+    email: v.string(),
+    phoneNumber: v.string(),
+    dateOfBirth: v.string(),
+    imageStorageId: v.optional(v.id("_storage")),
+    batchYear: v.number(),
+  })),
+  handler: async (ctx) => {
+    return await ctx.db.query("students").order("desc").collect();
+  },
+});

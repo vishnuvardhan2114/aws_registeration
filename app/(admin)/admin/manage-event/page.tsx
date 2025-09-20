@@ -78,11 +78,14 @@ const ManageEventPage = () => {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     })
   }
 
@@ -145,7 +148,7 @@ const ManageEventPage = () => {
                     <CardTitle className="text-lg">{event.name}</CardTitle>
                     <CardDescription className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      {formatDate(event.StartDate)} - {formatDate(event.EndDate)}
+                      {formatDateTime(event.StartDate)} - {formatDateTime(event.EndDate)}
                     </CardDescription>
                   </div>
                   <div className="flex gap-1">

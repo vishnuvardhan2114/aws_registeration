@@ -98,12 +98,16 @@ export const createTransaction = action({
         rawResponse: payment,
       };
 
+      console.log("Creating transaction with data:", transactionToInsert);
+      
       const transactionInserted: Id<"transactions"> = await ctx.runMutation(
         api.transactions.insertTransaction,
         {
           ...transactionToInsert,
         }
       );
+      
+      console.log("Transaction created successfully with ID:", transactionInserted);
       return transactionInserted;
     } catch (error) {
       throw new Error(`Failed to fetch/insert transaction: ${error}`);

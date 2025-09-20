@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Jost } from "next/font/google";
 import "./globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
-import { ConvexClientProvider } from "./components/Providers/ConvexClientProvider";
 import { Toaster } from "sonner";
+import ConvexClientProvider from "./components/Providers/ConvexClientProvider";
 
 const jost = Jost({
   variable: "--font-jost",
@@ -27,6 +27,7 @@ export default function RootLayout({
       <html lang="en">
         <body
           className={`${jost.variable} antialiased`}
+          suppressHydrationWarning={true}
         >
           <ConvexClientProvider>
             {children}

@@ -9,13 +9,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuthActions } from "@convex-dev/auth/react";
 import { toast, Toaster } from 'sonner'
 import { ConvexError } from 'convex/values'
-import { Loader2 } from 'lucide-react'
 
 const INVALID_PASSWORD = "invalid password";
 
 const AdminLoginPage = () => {
     const [isLoading, setIsLoading] = useState(false)
-    const [showLoader, setShowLoader] = useState(false)
     const router = useRouter()
     const searchParams = useSearchParams()
     const { signIn } = useAuthActions();
@@ -34,7 +32,6 @@ const AdminLoginPage = () => {
     // Handle loading parameter from logout
     useEffect(() => {
         if (searchParams.get('loading') === 'true') {
-            setShowLoader(true);
             // Remove the loading parameter from URL after showing loader
             const url = new URL(window.location.href);
             url.searchParams.delete('loading');
@@ -49,7 +46,18 @@ const AdminLoginPage = () => {
             const data = await signIn("password", formData);
             if (data.signingIn) {
                 toast.success("Logged in successfully");
-                router.push('/admin/dashboard')
+                
+                // Check if there's a redirect path stored in sessionStorage
+                const redirectPath = sessionStorage.getItem('redirectAfterAuth');
+                if (redirectPath) {
+                    // Clear the stored redirect path
+                    sessionStorage.removeItem('redirectAfterAuth');
+                    // Redirect to the original page
+                    router.push(redirectPath);
+                } else {
+                    // Default redirect to dashboard
+                    router.push('/admin/dashboard');
+                }
             }
         } catch (error) {
             console.error("Login error:", error);

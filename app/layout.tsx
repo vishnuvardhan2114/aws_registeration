@@ -3,7 +3,7 @@ import { Jost } from "next/font/google";
 import "./globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { Toaster } from "sonner";
-import ConvexClientProvider from "./components/Providers/ConvexClientProvider";
+import { ConvexClientProvider } from "./components/Providers/ConvexClientProvider";
 
 const jost = Jost({
   variable: "--font-jost",

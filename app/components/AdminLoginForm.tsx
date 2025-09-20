@@ -48,11 +48,6 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
     submitFormData.append('password', formData.password)
     submitFormData.append('flow', formData.flow)
     
-    console.log('FormData entries:')
-    console.log('Email:', formData.email)
-    console.log('Password:', formData.password)
-    console.log("Flow:", formData.flow)
-    
     // Pass FormData to parent
     onSubmit(submitFormData)
   }

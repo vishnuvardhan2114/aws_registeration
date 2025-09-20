@@ -25,6 +25,7 @@ import {
     SidebarSeparator,
 } from '@/app/components/ui/sidebar'
 import { useAuthActions } from '@convex-dev/auth/react'
+import { toast } from 'sonner'
 
 const navigationItems = [
     {
@@ -35,11 +36,6 @@ const navigationItems = [
     {
         title: 'Registered Students',
         url: '/admin/register-users',
-        icon: Users,
-    },
-    {
-        title: 'Manage Users',
-        url: '/admin/manage-users',
         icon: Users,
     },
     {
@@ -59,15 +55,48 @@ const AdminSidebar: React.FC = () => {
     const { signOut } = useAuthActions();
     const router = useRouter();
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [logoutAttempted, setLogoutAttempted] = useState(false);
 
     const handleLogout = async () => {
+        // Prevent multiple logout attempts
+        if (logoutAttempted || isLoggingOut) {
+            return;
+        }
+        
+        setLogoutAttempted(true);
         setIsLoggingOut(true);
+        toast.info("Logging out...");
+        
         try {
-            await signOut();
-            router.push('/admin?loading=true');
+            // Add a timeout to prevent infinite loading
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Logout timeout')), 5000)
+            );
+            
+            await Promise.race([
+                signOut(),
+                timeoutPromise
+            ]);
+            
+            toast.success("Logged out successfully");
         } catch (error) {
             console.error('Logout error:', error);
-            setIsLoggingOut(false);
+            toast.warning("Logout timeout, forcing redirect...");
+            
+            // Fallback: Clear any local storage and force redirect
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+            } catch (storageError) {
+                console.error('Storage clear error:', storageError);
+            }
+        } finally {
+            // Always redirect after logout attempt
+            setTimeout(() => {
+                router.push('/admin?loading=true');
+                setIsLoggingOut(false);
+                setLogoutAttempted(false);
+            }, 500);
         }
     }
     return (
@@ -123,7 +152,7 @@ const AdminSidebar: React.FC = () => {
                                     asChild
                                     tooltip={isLoggingOut ? "Logging out..." : "Logout"}
                                     className="text-red-600 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
-                                    disabled={isLoggingOut}
+                                    disabled={isLoggingOut || logoutAttempted}
                                 >
                                     <div onClick={handleLogout} className="min-w-0 cursor-pointer">
                                         {isLoggingOut ? (

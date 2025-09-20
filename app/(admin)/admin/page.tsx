@@ -41,17 +41,6 @@ const AdminLoginPage = () => {
             router.replace(url.pathname + url.search);
         }
     }, [searchParams, router])
-
-    // Debug logging for production issues
-    useEffect(() => {
-        console.log('Admin page loaded:', {
-            pathname: window.location.pathname,
-            search: window.location.search,
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString()
-        });
-    }, [])
-
     // Accepts FormData, not a plain object
     const handleLogin = async (formData: FormData) => {
         setIsLoading(true)
@@ -79,12 +68,6 @@ const AdminLoginPage = () => {
         }
     }
 
-    // Show loader if logout was triggered
-    if (showLoader) {
-        return <div className='flex justify-center items-center h-screen'>
-            <Loader2 className='animate-spin' /> Loading...
-        </div>
-    }
 
     return (
         <>

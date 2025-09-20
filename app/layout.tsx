@@ -3,14 +3,13 @@ import { Jost } from "next/font/google";
 import "./globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { Toaster } from "sonner";
-import { ConvexClientProvider } from "./components/Providers/ConvexClientProvider";
+import ConvexClientProvider from "./components/Providers/ConvexClientProvider";
 
 const jost = Jost({
   variable: "--font-jost",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
-
 
 export const metadata: Metadata = {
   title: "AWS Registeration",
@@ -23,18 +22,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ConvexAuthNextjsServerProvider >
-      <html lang="en">
-        <body
-          className={`${jost.variable} antialiased`}
-          suppressHydrationWarning={true}
-        >
+    <html lang="en">
+      <body
+        className={`${jost.variable} antialiased`}
+        suppressHydrationWarning={true}
+      >
+        <ConvexAuthNextjsServerProvider>
           <ConvexClientProvider>
             {children}
             <Toaster position="top-center" richColors />
           </ConvexClientProvider>
-        </body>
-      </html>
-    </ConvexAuthNextjsServerProvider>
+        </ConvexAuthNextjsServerProvider>
+      </body>
+    </html>
   );
 }

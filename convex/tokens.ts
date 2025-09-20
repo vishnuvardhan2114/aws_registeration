@@ -46,11 +46,9 @@ export const addToken = mutation({
          return result;
       }
       const uniqueCode = generateUniqueCode(8);
-      console.log("Creating token with args:", { ...args, uniqueCode });
       
       const tokenId = await ctx.db.insert("tokens", { ...args, uniqueCode });
       
-      console.log("Token created successfully with ID:", tokenId);
       return {
          tokenId,
          uniqueCode,
@@ -381,7 +379,6 @@ export const getTokenByUniqueCode = query({
       try {
         const url = await ctx.storage.getUrl(student.imageStorageId);
         imageUrl = url || undefined;
-        console.log("Image URL resolved:", url);
       } catch (error) {
         console.error("Error getting image URL:", error);
         imageUrl = undefined;

@@ -42,7 +42,6 @@ export const createRazorpayOrder = action({
       };
 
       const order = await razorpay.orders.create(options);
-      console.log("order from razorpay", order);
       return order;
     } catch (error: unknown) {
       console.error("Error in Razorpay API:", error);

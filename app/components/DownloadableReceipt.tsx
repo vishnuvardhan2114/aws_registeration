@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { Button } from "@/app/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Download, Loader2 } from "lucide-react";
+import BarcodeGenerator from "@/app/components/BarcodeGenerator";
 
 type RegistrationDetails = {
     token: {
@@ -11,6 +12,7 @@ type RegistrationDetails = {
         eventId: string;
         studentId: string;
         isUsed: boolean;
+        uniqueCode?: string;
     };
     transaction: {
         _id: string;
@@ -438,26 +440,7 @@ export default function DownloadableReceipt({
                                 >
                                     Registration Details
                                 </h3>
-                                <p 
-                                    className="text-sm text-black mb-1"
-                                    style={{ 
-                                        fontSize: '14px', 
-                                        color: '#000000', 
-                                        marginBottom: '4px' 
-                                    }}
-                                >
-                                    Token ID: {tokenId}
-                                </p>
-                                <p 
-                                    className="text-sm text-gray-600 mb-1"
-                                    style={{ 
-                                        fontSize: '14px', 
-                                        color: '#6b7280', 
-                                        marginBottom: '4px' 
-                                    }}
-                                >
-                                    Transaction ID: {transactionId}
-                                </p>
+                               
                                 <p 
                                     className="text-sm text-gray-600"
                                     style={{ 
@@ -515,11 +498,32 @@ export default function DownloadableReceipt({
                                 className="text-sm text-gray-800"
                                 style={{ 
                                     fontSize: '14px', 
-                                    color: '#6b7280' 
+                                    color: '#6b7280',
+                                    marginBottom: '12px'
                                 }}
                             >
                                 Food Included: {isFoodIncluded ? "Yes" : "No"}
                             </p>
+                            
+                            {/* Barcode for unique code */}
+                            {registrationDetails.token.uniqueCode && (
+                                <div className="mt-4">
+                                    <p 
+                                        className="text-xs text-gray-500 mb-2"
+                                        style={{ 
+                                            fontSize: '12px', 
+                                            color: '#6b7280',
+                                            marginBottom: '8px',
+                                            textAlign: 'center'
+                                        }}
+                                    >
+                                        Registration Code:
+                                    </p>
+                                    <div className="flex justify-center">
+                                        <BarcodeGenerator uniqueCode={registrationDetails.token.uniqueCode} />
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Payment Summary */}

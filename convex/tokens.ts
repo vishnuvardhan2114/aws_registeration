@@ -13,6 +13,7 @@ export const getToken = query({
          eventId: v.id("events"),
          studentId: v.id("students"),
          isUsed: v.boolean(),
+         uniqueCode: v.optional(v.string()),
       }),
       v.null()
    ),
@@ -78,6 +79,7 @@ export const getTokenByTransactionId = query({
          eventId: v.id("events"),
          studentId: v.id("students"),
          isUsed: v.boolean(),
+         uniqueCode: v.optional(v.string()),
       }),
       v.null()
    ),
@@ -104,6 +106,7 @@ export const getRegistrationDetailsByTransactionId = query({
             eventId: v.id("events"),
             studentId: v.id("students"),
             isUsed: v.boolean(),
+            uniqueCode: v.optional(v.string()),
          }),
          // Transaction details
          transaction: v.object({
@@ -213,6 +216,7 @@ export const getRegistrationDetailsByTokenId = query({
             eventId: v.id("events"),
             studentId: v.id("students"),
             isUsed: v.boolean(),
+            uniqueCode: v.optional(v.string()),
          }),
          // Transaction details
          transaction: v.object({

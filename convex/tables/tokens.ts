@@ -6,4 +6,5 @@ export const tokens = defineTable({
   eventId: v.id("events"),
   studentId: v.id("students"),
   isUsed: v.boolean(),
+  uniqueCode: v.string(),
 }).index("by_event_student", ["eventId", "studentId"]);

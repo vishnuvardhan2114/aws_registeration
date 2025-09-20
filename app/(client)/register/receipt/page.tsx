@@ -17,17 +17,6 @@ const ReceiptPage = () => {
     tokenId ? { tokenId } : "skip"
   );
 
-  useEffect(() => {
-    if (registrationDetails) {
-      console.log("=== REGISTRATION DETAILS ===");
-      console.log("Token Details:", registrationDetails.token);
-      console.log("Transaction Details:", registrationDetails.transaction);
-      console.log("Event Details:", registrationDetails.event);
-      console.log("Student Details:", registrationDetails.student);
-      console.log("===========================");
-    }
-  }, [registrationDetails]);
-
   if (!tokenId) {
     return (
       <div className="min-h-screen flex items-center justify-center">

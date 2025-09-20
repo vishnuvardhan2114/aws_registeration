@@ -1,39 +1,39 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import {
-  Search,
-  Filter,
-  Download,
-  Eye,
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  Eye, 
   Calendar,
   User,
   Phone,
   CreditCard
 } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
 } from '@/app/components/ui/table';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
 } from '@/app/components/ui/card';
-import {
-  Button
+import { 
+  Button 
 } from '@/app/components/ui/button';
-import {
-  Input
+import { 
+  Input 
 } from '@/app/components/ui/input';
-import {
-  Badge
+import { 
+  Badge 
 } from '@/app/components/ui/badge';
 // Custom dropdown implementation for status filter
 
@@ -107,23 +107,23 @@ type TransactionStatus = 'completed' | 'pending' | 'failed' | 'refunded';
 
 const getStatusBadge = (status: TransactionStatus) => {
   const statusConfig = {
-    completed: {
-      variant: 'default' as const,
+    completed: { 
+      variant: 'default' as const, 
       className: 'bg-green-100 text-green-800 hover:bg-green-100',
       label: 'Completed'
     },
-    pending: {
-      variant: 'secondary' as const,
+    pending: { 
+      variant: 'secondary' as const, 
       className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
       label: 'Pending'
     },
-    failed: {
-      variant: 'destructive' as const,
+    failed: { 
+      variant: 'destructive' as const, 
       className: 'bg-red-100 text-red-800 hover:bg-red-100',
       label: 'Failed'
     },
-    refunded: {
-      variant: 'outline' as const,
+    refunded: { 
+      variant: 'outline' as const, 
       className: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
       label: 'Refunded'
     }
@@ -161,15 +161,15 @@ const TransactionsPage = () => {
 
   const filteredTransactions = useMemo(() => {
     return mockTransactions.filter(transaction => {
-      const matchesSearch =
+      const matchesSearch = 
         transaction.payerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         transaction.payerPhone.includes(searchTerm) ||
         transaction.eventName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         transaction.paymentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         transaction.orderId.toLowerCase().includes(searchTerm.toLowerCase());
-
+      
       const matchesStatus = statusFilter === 'all' || transaction.status === statusFilter;
-
+      
       return matchesSearch && matchesStatus;
     });
   }, [searchTerm, statusFilter]);
@@ -201,7 +201,7 @@ const TransactionsPage = () => {
 
       {/* Stats Cards */}
       <div className="flex justify-end gap-2">
-        <Card className='w-[300px]'>
+        <Card className='w-[350px]'> 
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
@@ -214,20 +214,6 @@ const TransactionsPage = () => {
           </CardContent>
         </Card>
 
-      </div>
-
-      {/* Filters */}
-
-      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-x-4 md:space-y-0">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, phone, event, payment ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-11 w-[40%]"
-          />
-        </div>
       </div>
 
       {/* Transactions Table */}

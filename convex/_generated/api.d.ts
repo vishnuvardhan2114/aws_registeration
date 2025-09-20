@@ -27,6 +27,7 @@ import type * as tables_transactions from "../tables/transactions.js";
 import type * as tables_users from "../tables/users.js";
 import type * as tokens from "../tokens.js";
 import type * as transactions from "../transactions.js";
+import type * as users from "../users.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -51,6 +52,7 @@ declare const fullApi: ApiFromModules<{
   "tables/users": typeof tables_users;
   tokens: typeof tokens;
   transactions: typeof transactions;
+  users: typeof users;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

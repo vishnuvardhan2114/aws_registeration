@@ -42,7 +42,7 @@ export default function PaymentConfirmation({
           </h2>
           
           <p className="text-slate-600 mb-6 leading-relaxed">
-            You're all set for <span className="font-medium text-slate-900">{eventName}</span>. 
+            You&apos;re all set for <span className="font-medium text-slate-900">{eventName}</span>. 
             Complete your payment to secure your spot.
           </p>
 
@@ -94,7 +94,7 @@ export default function PaymentConfirmation({
           {/* Additional Info */}
           <div className="mt-6 pt-6 border-t border-slate-100">
             <p className="text-xs text-slate-500 leading-relaxed">
-              Your payment is processed securely. You'll receive a confirmation email 
+              Your payment is processed securely. You&apos;ll receive a confirmation email 
               and receipt after successful payment.
             </p>
           </div>

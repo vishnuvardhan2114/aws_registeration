@@ -44,7 +44,7 @@ const getStatusBadge = (status: string) => {
   const statusConfig: Record<string, { variant: any; className: string; label: string }> = {
     captured: { 
       variant: 'default' as const, 
-      className: 'bg-green-100 text-green-800 hover:bg-green-100',
+      className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
       label: 'Completed'
     },
     pending: { 

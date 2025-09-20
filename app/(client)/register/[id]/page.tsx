@@ -378,8 +378,8 @@ const EventRegistrationPage = () => {
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <Card className="mx-auto text-center max-w-md">
                     <CardContent className="pt-8 pb-8">
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <div className="w-8 h-8 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
                         </div>
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">
                             Processing Your Registration
@@ -387,10 +387,10 @@ const EventRegistrationPage = () => {
                         <p className="text-gray-600 mb-4">
                             Please wait while we prepare your receipt and confirmation details...
                         </p>
-                        <div className="flex items-center justify-center space-x-2 text-sm text-blue-600">
-                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        <div className="flex items-center justify-center space-x-2 text-sm text-yellow-600">
+                            <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse"></div>
+                            <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                         </div>
                     </CardContent>
                 </Card>
@@ -408,19 +408,19 @@ const EventRegistrationPage = () => {
                     {registrationCompleted && studentId ? (
                         <Card className="text-center py-12">
                             <CardHeader>
-                                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
-                                <h3 className="text-xl font-semibold text-green-800 mb-2">Registration Successful!</h3>
+                                <h3 className="text-xl font-semibold text-yellow-800 mb-2">Registration Successful!</h3>
                                 <p className="text-gray-600 mb-6">
                                     Your registration has been completed. Please proceed to payment to confirm your spot.
                                 </p>
                                 <Button
                                     onClick={handlePayment}
                                     disabled={!isRegistrationOpen || !razorpayLoaded}
-                                    className="w-full max-w-md mx-auto"
+                                    className="w-full max-w-md mx-auto bg-red-800 hover:bg-red-900 text-white"
                                     size="lg"
                                 >
                                     {!razorpayLoaded ? "Loading Payment..." : `Pay ₹${event.amount}`}

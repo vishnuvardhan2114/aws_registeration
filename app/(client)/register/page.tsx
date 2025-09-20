@@ -54,13 +54,13 @@ const getEventStatus = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    if (now < start) {
-        return { status: 'upcoming', label: 'Upcoming', className: 'bg-blue-100 text-blue-800 hover:bg-blue-100' };
-    } else if (now >= start && now <= end) {
-        return { status: 'active', label: 'Active', className: 'bg-green-100 text-green-800 hover:bg-green-100' };
-    } else {
-        return { status: 'ended', label: 'Ended', className: 'bg-gray-100 text-gray-800 hover:bg-gray-100' };
-    }
+     if (now < start) {
+         return { status: 'upcoming', label: 'Upcoming', className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' };
+     } else if (now >= start && now <= end) {
+         return { status: 'active', label: 'Active', className: 'bg-red-100 text-red-800 hover:bg-red-100' };
+     } else {
+         return { status: 'ended', label: 'Ended', className: 'bg-gray-100 text-gray-800 hover:bg-gray-100' };
+     }
 };
 
 const EventsListingPage = () => {
@@ -71,7 +71,7 @@ const EventsListingPage = () => {
     const router = useRouter();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-yellow-50">
             <div className="container mx-auto py-8 px-4">
                 {/* Header */}
                 <div className="text-center mb-12">
@@ -145,23 +145,23 @@ const EventsListingPage = () => {
                                         </div>
 
                                         {/* Price */}
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-2xl text-green-600">
-                                                    {formatCurrency(event.amount)}
-                                                </span>
-                                            </div>
-                                            {event.isFoodIncluded && (
-                                                <div className="flex items-center gap-1 text-sm text-orange-600">
-                                                    <Utensils className="h-4 w-4" />
-                                                    <span>Food Included</span>
-                                                </div>
-                                            )}
-                                        </div>
+                                         <div className="flex items-center justify-between">
+                                             <div className="flex items-center gap-2">
+                                                 <span className="font-bold text-2xl text-yellow-600">
+                                                     {formatCurrency(event.amount)}
+                                                 </span>
+                                             </div>
+                                             {event.isFoodIncluded && (
+                                                 <div className="flex items-center gap-1 text-sm text-red-600">
+                                                     <Utensils className="h-4 w-4" />
+                                                     <span>Food Included</span>
+                                                 </div>
+                                             )}
+                                         </div>
 
                                         {/* Registration Button */}
                                         <Button
-                                            className="w-full cursor-pointer"
+                                            className="w-full cursor-pointer bg-red-800 hover:bg-red-900 text-white"
                                             size="lg"
                                             disabled={eventStatus.status === 'ended' || loadingEventId === event._id}
                                             onClick={() => {
@@ -194,19 +194,19 @@ const EventsListingPage = () => {
 
                 {/* Footer Info */}
                 {!isLoading && events.length > 0 && (
-                    <div className="mt-12 text-center">
-                        <Card className="max-w-2xl mx-auto bg-blue-50 border-blue-200">
-                            <CardContent className="pt-6">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <MapPin className="h-5 w-5 text-blue-600" />
-                                    <h3 className="font-semibold text-blue-900">Event Registration</h3>
-                                </div>
-                                <p className="text-blue-800 text-sm">
-                                    Click on any event to start your registration process. All payments are processed securely through Razorpay.
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
+                     <div className="mt-12 text-center">
+                         <Card className="max-w-2xl mx-auto bg-yellow-50 border-yellow-200">
+                             <CardContent className="pt-6">
+                                 <div className="flex items-center justify-center gap-2 mb-2">
+                                     <MapPin className="h-5 w-5 text-yellow-600" />
+                                     <h3 className="font-semibold text-yellow-900">Event Registration</h3>
+                                 </div>
+                                 <p className="text-yellow-800 text-sm">
+                                     Click on any event to start your registration process. All payments are processed securely through Razorpay.
+                                 </p>
+                             </CardContent>
+                         </Card>
+                     </div>
                 )}
             </div>
         </div>

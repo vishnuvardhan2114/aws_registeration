@@ -226,7 +226,7 @@ export default function DownloadableReceipt({
                     <Button
                         onClick={handleDownload}
                         disabled={isDownloading}
-                        className="w-full max-w-[300px] m-auto bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 h-12 text-white flex items-center justify-center space-x-2 text-base"
+                        className="w-full max-w-[300px] m-auto bg-red-800 hover:bg-red-900 disabled:bg-red-400 h-12 text-white flex items-center justify-center space-x-2 text-base"
                     >
                         {isDownloading ? (
                             <>
@@ -287,7 +287,7 @@ export default function DownloadableReceipt({
                                     style={{
                                         fontSize: '24px',
                                         fontWeight: 'bold',
-                                        color: '#2563eb',
+                                        color: '#B8860B',
                                         marginBottom: '4px'
                                     }}
                                 >
@@ -323,7 +323,7 @@ export default function DownloadableReceipt({
                                         alignItems: 'center',
                                         fontSize: '14px',
                                         fontWeight: '600',
-                                        color: '#059669',
+                                        color: '#B8860B',
                                         marginBottom: '4px'
                                     }}
                                 >
@@ -332,7 +332,7 @@ export default function DownloadableReceipt({
                                         style={{
                                             width: '10px',
                                             height: '10px',
-                                            backgroundColor: '#059669',
+                                            backgroundColor: '#B8860B',
                                             borderRadius: '50%',
                                             marginRight: '8px'
                                         }}

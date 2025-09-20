@@ -3,6 +3,7 @@ import { Button } from "@/app/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Download, Loader2 } from "lucide-react";
 import BarcodeGenerator from "@/app/components/BarcodeGenerator";
+import Image from 'next/image';
 
 type RegistrationDetails = {
     token: {
@@ -193,7 +194,7 @@ export default function DownloadableReceipt({
     if (!registrationDetails) {
   return (
             <div className="flex items-center justify-center p-8">
-                <p className="text-gray-600">No registration details available</p>
+                <p className="text-[#6b7280]">No registration details available</p>
             </div>
         );
     }
@@ -226,7 +227,7 @@ export default function DownloadableReceipt({
                     <Button
                         onClick={handleDownload}
                         disabled={isDownloading}
-                        className="w-full max-w-[300px] m-auto bg-red-800 hover:bg-red-900 disabled:bg-red-400 h-12 text-white flex items-center justify-center space-x-2 text-base"
+                        className="w-full max-w-[300px] m-auto bg-[#991b1b] hover:bg-[#7f1d1d] disabled:bg-[#f87171] h-12 text-[#ffffff] flex items-center justify-center space-x-2 text-base"
                     >
                         {isDownloading ? (
                             <>
@@ -243,7 +244,7 @@ export default function DownloadableReceipt({
 
                     {/* Error Display */}
                     {error && (
-                        <div className="mt-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded max-w-[300px] m-auto">
+                        <div className="mt-3 p-3 bg-[#fef2f2] border border-[#fca5a5] text-[#dc2626] rounded max-w-[300px] m-auto">
                             <p className="text-sm">{error}</p>
                             <button
                                 onClick={clearError}
@@ -261,7 +262,7 @@ export default function DownloadableReceipt({
                 <div
                     ref={receiptRef}
                     className={cn(
-                        "bg-white relative font-sans text-gray-900 py-5",
+                        "bg-[#ffffff] relative font-sans text-[#111827] py-5",
                         mode === "download" ? "w-[700px] mx-auto" : "w-full max-w-[800px] mx-auto"
                     )}
                     style={{
@@ -274,7 +275,7 @@ export default function DownloadableReceipt({
                 >
                     {/* Header */}
                     <div
-                        className="border-b border-gray-200 p-8"
+                        className="border-b border-[#e5e7eb] p-8"
                         style={{
                             borderBottom: '1px solid #e5e7eb',
                             padding: '32px'
@@ -282,26 +283,20 @@ export default function DownloadableReceipt({
                     >
                         <div className="flex justify-between items-start">
                             <div>
-                                <div
-                                    className="text-2xl font-bold mb-1"
-                                    style={{
-                                        fontSize: '24px',
-                                        fontWeight: 'bold',
-                                        color: '#B8860B',
-                                        marginBottom: '4px'
-                                    }}
-                                >
-                                    Event Registration
+                                <div className="mb-2" style={{ marginBottom: '8px' }}>
+                                    <Image 
+                                        src="/SGA.webp" 
+                                        alt="SGA Logo" 
+                                        width={120}
+                                        height={60}
+                                        className="h-8 w-auto object-contain"
+                                        style={{
+                                            maxWidth: '120px',
+                                            height: 'auto'
+                                        }}
+                                    />
                                 </div>
-                                <p
-                                    className="text-sm"
-                                    style={{
-                                        fontSize: '14px',
-                                        color: '#6b7280'
-                                    }}
-                                >
-                                    Professional Event Management System
-                                </p>
+                               
                             </div>
                             <div className="text-right">
                                 <h2
@@ -358,7 +353,7 @@ export default function DownloadableReceipt({
                             {/* Student Details */}
                             <div className="flex-1 min-w-[200px]" style={{ flex: '1', minWidth: '200px' }}>
                                 <h3
-                                    className="text-sm font-semibold text-gray-900 mb-2"
+                                    className="text-sm font-semibold text-[#111827] mb-2"
                                     style={{
                                         fontSize: '14px',
                                         fontWeight: '600',
@@ -369,7 +364,7 @@ export default function DownloadableReceipt({
                                     Student Details
                                 </h3>
                                 <p
-                                    className="text-lg font-semibold text-black"
+                                    className="text-lg font-semibold text-[#000000]"
                                     style={{
                                         fontSize: '18px',
                                         fontWeight: '600',
@@ -380,7 +375,7 @@ export default function DownloadableReceipt({
                                     {studentName}
                                 </p>
                                 <p
-                                    className="text-sm text-gray-600"
+                                    className="text-sm text-[#6b7280]"
                                     style={{
                                         fontSize: '14px',
                                         color: '#6b7280',
@@ -390,7 +385,7 @@ export default function DownloadableReceipt({
                                     Age: {studentAge} years
                                 </p>
                                 <p
-                                    className="text-sm text-gray-600"
+                                    className="text-sm text-[#6b7280]"
                                     style={{
                                         fontSize: '14px',
                                         color: '#6b7280',
@@ -400,7 +395,7 @@ export default function DownloadableReceipt({
                                     Batch: {batchYear}
                                 </p>
                                 <p
-                                    className="text-sm text-gray-600"
+                                    className="text-sm text-[#6b7280]"
                                     style={{
                                         fontSize: '14px',
                                         color: '#6b7280',
@@ -410,7 +405,7 @@ export default function DownloadableReceipt({
                                     {studentEmail}
                                 </p>
                                 <p
-                                    className="text-sm text-gray-600"
+                                    className="text-sm text-[#6b7280]"
                                     style={{
                                         fontSize: '14px',
                                         color: '#6b7280'
@@ -430,7 +425,7 @@ export default function DownloadableReceipt({
                                 }}
                             >
                                 <h3
-                                    className="text-sm font-semibold text-gray-900 mb-2"
+                                    className="text-sm font-semibold text-[#111827] mb-2"
                                     style={{
                                         fontSize: '14px',
                                         fontWeight: '600',
@@ -442,7 +437,7 @@ export default function DownloadableReceipt({
                                 </h3>
 
                                 <p
-                                    className="text-sm text-gray-600"
+                                    className="text-sm text-[#6b7280]"
                                     style={{
                                         fontSize: '14px',
                                         color: '#6b7280'
@@ -455,7 +450,7 @@ export default function DownloadableReceipt({
 
                         {/* Event Details */}
                         <div
-                            className="border-t border-gray-200 pt-6 mb-6"
+                            className="border-t border-[#e5e7eb] pt-6 mb-6"
                             style={{
                                 borderTop: '1px solid #e5e7eb',
                                 paddingTop: '24px',
@@ -463,7 +458,7 @@ export default function DownloadableReceipt({
                             }}
                         >
                             <h3
-                                className="text-sm font-semibold text-gray-900 mb-4"
+                                className="text-sm font-semibold text-[#111827] mb-4"
                                 style={{
                                     fontSize: '14px',
                                     fontWeight: '600',
@@ -489,7 +484,7 @@ export default function DownloadableReceipt({
                                         {eventName}
                                     </p>
                                     <p
-                                        className="text-sm text-gray-600"
+                                        className="text-sm text-[#6b7280]"
                                         style={{
                                             fontSize: '14px',
                                             color: '#6b7280',
@@ -499,7 +494,7 @@ export default function DownloadableReceipt({
                                         {eventStartDate.toLocaleDateString()} - {eventEndDate.toLocaleDateString()}
                                     </p>
                                     <p
-                                        className="text-sm text-gray-800"
+                                        className="text-sm text-[#6b7280]"
                                         style={{
                                             fontSize: '14px',
                                             color: '#6b7280',
@@ -514,7 +509,7 @@ export default function DownloadableReceipt({
                                 {registrationDetails.token.uniqueCode && (
                                     <div className="flex flex-col items-center">
                                         <p
-                                            className="text-xs text-gray-500 mb-2"
+                                            className="text-xs text-[#6b7280] mb-2"
                                             style={{
                                                 fontSize: '12px',
                                                 color: '#6b7280',
@@ -533,14 +528,14 @@ export default function DownloadableReceipt({
 
                         {/* Payment Summary */}
                         <div
-                            className="border-t border-gray-200 pt-6"
+                            className="border-t border-[#e5e7eb] pt-6"
                             style={{
                                 borderTop: '1px solid #e5e7eb',
                                 paddingTop: '24px'
                             }}
                         >
                             <h3
-                                className="text-sm font-semibold text-gray-900 mb-4"
+                                className="text-sm font-semibold text-[#111827] mb-4"
                                 style={{
                                     fontSize: '14px',
                                     fontWeight: '600',
@@ -561,13 +556,13 @@ export default function DownloadableReceipt({
                                     }}
                                 >
                                     <span
-                                        className="text-gray-600"
+                                        className="text-[#6b7280]"
                                         style={{ color: '#6b7280' }}
                                     >
                                         Event Registration Fee
                                     </span>
                                     <span
-                                        className="text-black"
+                                        className="text-[#000000]"
                                         style={{ color: '#000000' }}
                                     >
                                         {currencySymbol}{amount.toFixed(2)}
@@ -576,7 +571,7 @@ export default function DownloadableReceipt({
                             </div>
 
                             <div
-                                className="border-t border-gray-200 pt-4 mt-4 flex justify-between text-lg font-bold"
+                                className="border-t border-[#e5e7eb] pt-4 mt-4 flex justify-between text-lg font-bold"
                                 style={{
                                     borderTop: '1px solid #e5e7eb',
                                     paddingTop: '16px',
@@ -602,13 +597,13 @@ export default function DownloadableReceipt({
                                 }}
                             >
                                 <span
-                                    className="text-gray-600"
+                                    className="text-[#6b7280]"
                                     style={{ color: '#6b7280' }}
                                 >
                                     Payment Method
                                 </span>
                                 <span
-                                    className="capitalize text-black"
+                                    className="capitalize text-[#000000]"
                                     style={{
                                         textTransform: 'capitalize',
                                         color: '#000000'
@@ -622,7 +617,7 @@ export default function DownloadableReceipt({
 
                     {/* Footer */}
                     <div
-                        className="border-t border-gray-200 pt-6 mt-8 text-center"
+                        className="border-t border-[#e5e7eb] pt-6 mt-8 text-center"
                         style={{
                             borderTop: '1px solid #e5e7eb',
                             paddingTop: '24px',
@@ -631,7 +626,7 @@ export default function DownloadableReceipt({
                         }}
                     >
                         <p
-                            className="text-sm text-gray-500 mb-3"
+                            className="text-sm text-[#6b7280] mb-3"
                             style={{
                                 fontSize: '14px',
                                 color: '#6b7280',
@@ -652,7 +647,7 @@ export default function DownloadableReceipt({
                         >
                             <a
                                 href="/terms-conditions"
-                                className="text-sm text-gray-500 hover:text-black"
+                                className="text-sm text-[#6b7280] hover:text-[#000000]"
                                 style={{
                                     fontSize: '14px',
                                     color: '#6b7280',
@@ -663,7 +658,7 @@ export default function DownloadableReceipt({
                             </a>
                             <a
                                 href="/cancellation-policy"
-                                className="text-sm text-gray-500 hover:text-black"
+                                className="text-sm text-[#6b7280] hover:text-[#000000]"
                                 style={{
                                     fontSize: '14px',
                                     color: '#6b7280',
@@ -675,7 +670,7 @@ export default function DownloadableReceipt({
                         </div>
 
                         <p
-                            className="text-sm text-gray-400"
+                            className="text-sm text-[#9ca3af]"
                             style={{
                                 fontSize: '14px',
                                 color: '#9ca3af'

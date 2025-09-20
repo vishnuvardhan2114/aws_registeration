@@ -5,6 +5,8 @@ import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
 
 const ReceiptPage = () => {
   const searchParams = useSearchParams();
@@ -50,24 +52,43 @@ const ReceiptPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <DownloadableReceipt
-          registrationDetails={registrationDetails}
-          mode="view"
-          fileName={`event_receipt_${tokenId}.pdf`}
-        />
+    <div className="min-h-screen bg-gray-50">
+      {/* Logo Header */}
+      <div className="w-full px-4 py-4 bg-white border-b border-gray-200">
+        <div className="flex justify-center lg:justify-start">
+          <Link href="/register" className="inline-block">
+            <Image
+              src="/SGA.webp"
+              alt="SGA Logo"
+              width={120}
+              height={60}
+              className="h-12 w-auto object-contain lg:h-16"
+              priority
+            />
+          </Link>
+        </div>
+      </div>
 
-        {/* Mobile Download Button - Only visible on small screens */}
-        <div className="mt-6 p-4 bg-white border-t border-gray-200">
+      <div className="py-8">
+        <div className="container mx-auto px-4 max-w-4xl">
           <DownloadableReceipt
             registrationDetails={registrationDetails}
-            mode="download"
+            mode="view"
             fileName={`event_receipt_${tokenId}.pdf`}
           />
+
+          {/* Mobile Download Button - Only visible on small screens */}
+          <div className="mt-6 p-4 bg-white border-t border-gray-200">
+            <DownloadableReceipt
+              registrationDetails={registrationDetails}
+              mode="download"
+              fileName={`event_receipt_${tokenId}.pdf`}
+            />
+          </div>
         </div>
       </div>
     </div>
+
   );
 };
 

@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 declare global {
     interface Window {
@@ -403,6 +404,22 @@ const EventRegistrationPage = () => {
 
     return (
         <div className="min-h-screen">
+            {/* Logo Header */}
+            <div className="w-full px-4 py-4">
+                <div className="flex justify-center lg:justify-start">
+                    <Link href="/register" className="inline-block">
+                        <Image 
+                            src="/SGA.webp" 
+                            alt="SGA Logo" 
+                            width={120}
+                            height={60}
+                            className="h-12 w-auto object-contain lg:h-16"
+                            priority
+                        />
+                    </Link>
+                </div>
+            </div>
+            
             <div className="container mx-auto py-8 ">
                 <div className="">
                     {registrationCompleted && studentId ? (

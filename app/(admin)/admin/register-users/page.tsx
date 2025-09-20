@@ -1,67 +1,61 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
+import { api } from "@/convex/_generated/api";
+import { useMutation, useQuery } from "convex/react";
+import { useMemo, useState } from "react";
 // Id type import removed as it's not used in this implementation
-import { 
-  Search, 
-  User, 
-  Mail, 
-  Phone, 
+import AdminAddUserDialog from "@/app/components/AdminAddUserDialog";
+import AdminBulkAddUserDialog from "@/app/components/AdminBulkAddUserDialog";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/app/components/ui/avatar";
+import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/app/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
+import { Input } from "@/app/components/ui/input";
+import { Skeleton } from "@/app/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/app/components/ui/table";
+import { Id } from "@/convex/_generated/dataModel";
+import {
   Calendar,
   Download,
-  Eye,
   Edit,
+  Eye,
+  Mail,
+  Phone,
+  Search,
   Trash2,
-  Plus
-} from 'lucide-react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/app/components/ui/table';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/app/components/ui/card';
-import { 
-  Button 
-} from '@/app/components/ui/button';
-import { 
-  Input 
-} from '@/app/components/ui/input';
-import { 
-  Badge 
-} from '@/app/components/ui/badge';
-import { 
-  Skeleton 
-} from '@/app/components/ui/skeleton';
-import { 
-  Avatar, 
-  AvatarFallback, 
-  AvatarImage 
-} from '@/app/components/ui/avatar';
+  User,
+} from "lucide-react";
 
 // Student type is defined inline to avoid unused type warning
 
 const formatDate = (dateString: string) => {
-  return new Intl.DateTimeFormat('en-IN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+  return new Intl.DateTimeFormat("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   }).format(new Date(dateString));
 };
 
 const formatPhoneNumber = (phone: string) => {
   // Format phone number for Indian format
-  const cleaned = phone.replace(/\D/g, '');
+  const cleaned = phone.replace(/\D/g, "");
   if (cleaned.length === 10) {
     return `+91 ${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
   }
@@ -70,9 +64,9 @@ const formatPhoneNumber = (phone: string) => {
 
 const getInitials = (name: string) => {
   return name
-    .split(' ')
-    .map(word => word.charAt(0))
-    .join('')
+    .split(" ")
+    .map((word) => word.charAt(0))
+    .join("")
     .toUpperCase()
     .slice(0, 2);
 };
@@ -80,66 +74,152 @@ const getInitials = (name: string) => {
 const getBatchBadgeColor = (batchYear: number) => {
   const currentYear = new Date().getFullYear();
   const diff = currentYear - batchYear;
-  
-  if (diff <= 1) return 'bg-green-100 text-green-800 hover:bg-green-100';
-  if (diff <= 3) return 'bg-blue-100 text-blue-800 hover:bg-blue-100';
-  if (diff <= 5) return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100';
-  return 'bg-gray-100 text-gray-800 hover:bg-gray-100';
+
+  if (diff <= 1) return "bg-green-100 text-green-800 hover:bg-green-100";
+  if (diff <= 3) return "bg-blue-100 text-blue-800 hover:bg-blue-100";
+  if (diff <= 5) return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
+  return "bg-gray-100 text-gray-800 hover:bg-gray-100";
 };
 
 const RegisterStudentsPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [batchFilter, setBatchFilter] = useState<string>('all');
-  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [batchFilter, setBatchFilter] = useState<string>("all");
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedStudentData, setSelectedStudentData] = useState({});
+  const [isEdit, setIsEdit] = useState(false);
+
   const studentsData = useQuery(api.students.getAllStudents);
   const students = useMemo(() => studentsData || [], [studentsData]);
+  const deleteStudent = useMutation(api.students.deleteStudent);
+
   const isLoading = studentsData === undefined;
 
   const filteredStudents = useMemo(() => {
-    return students.filter(student => {
-      const matchesSearch = 
+    return students.filter((student) => {
+      const matchesSearch =
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.phoneNumber.includes(searchTerm) ||
         student.dateOfBirth.includes(searchTerm);
-      
-      const matchesBatch = batchFilter === 'all' || student.batchYear.toString() === batchFilter;
-      
+
+      const matchesBatch =
+        batchFilter === "all" || student.batchYear.toString() === batchFilter;
+
       return matchesSearch && matchesBatch;
     });
   }, [students, searchTerm, batchFilter]);
 
   const uniqueBatches = useMemo(() => {
-    return [...new Set(students.map(student => student.batchYear))].sort((a, b) => b - a);
+    return [...new Set(students.map((student) => student.batchYear))].sort(
+      (a, b) => b - a
+    );
   }, [students]);
 
   const totalStudents = students.length;
-  const recentRegistrations = students.filter(student => {
+  const recentRegistrations = students.filter((student) => {
     const registrationDate = new Date(student._creationTime);
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     return registrationDate > sevenDaysAgo;
   }).length;
 
+  const handleDeleteStudent = async (id: Id<"students">) => {
+    if (!id) {
+      return;
+    }
+
+    console.log("id: ", id);
+
+    try {
+      await deleteStudent({ id });
+    } catch (error) {
+      console.log("Error occured deleting student: ", error);
+      alert("Error Occured deleting student");
+    }
+  };
+
+  const onOpen = () => {
+    setIsEdit(false);
+    setIsOpen(true);
+  };
+
+  const onClose = (val: boolean) => {
+    if (!val) {
+      setIsOpen(false);
+    }
+  };
+
+  const onEdit = (id: Id<"students">) => {
+    const selectedStudent = students.find((student) => student._id === id);
+    if (selectedStudent) {
+      setSelectedStudentData(selectedStudent);
+      setIsOpen(true);
+      setIsEdit(true);
+    } else {
+      console.log("Student not found");
+    }
+  };
+
+  const handleExportToCsv = () => {
+    const csvContent = [
+      [
+        "name",
+        "phoneNumber",
+        "email",
+        "dateOfBirth",
+        "batchYear",
+        "_creationTime",
+        "_id",
+      ],
+      ...students.map((student) => [
+        student.name,
+        student.phoneNumber,
+        student.email,
+        student.dateOfBirth,
+        student.batchYear,
+        student._creationTime,
+        student._id,
+      ]),
+    ]
+      .map((e) => e.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "students.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Registered Students</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Registered Students
+          </h1>
           <p className="text-muted-foreground">
             Manage and view all registered students
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
+          <Button onClick={handleExportToCsv} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Student
-          </Button>
+          <AdminBulkAddUserDialog />
+          <AdminAddUserDialog
+            isOpen={isOpen}
+            isEdit={isEdit}
+            onOpen={onOpen}
+            onClose={onClose}
+            selectedStudentData={selectedStudentData}
+          />
         </div>
       </div>
 
@@ -147,7 +227,9 @@ const RegisterStudentsPage = () => {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Students
+            </CardTitle>
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -166,10 +248,12 @@ const RegisterStudentsPage = () => {
             )}
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Registrations</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Recent Registrations
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -181,9 +265,7 @@ const RegisterStudentsPage = () => {
             ) : (
               <>
                 <div className="text-2xl font-bold">{recentRegistrations}</div>
-                <p className="text-xs text-muted-foreground">
-                  Last 7 days
-                </p>
+                <p className="text-xs text-muted-foreground">Last 7 days</p>
               </>
             )}
           </CardContent>
@@ -205,13 +287,13 @@ const RegisterStudentsPage = () => {
         {isLoading ? (
           <Skeleton className="h-10 w-full md:w-48" />
         ) : (
-          <select 
-            value={batchFilter} 
+          <select
+            value={batchFilter}
             onChange={(e) => setBatchFilter(e.target.value)}
             className="flex h-10 w-full md:w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="all">All Batches</option>
-            {uniqueBatches.map(batch => (
+            {uniqueBatches.map((batch) => (
               <option key={batch} value={batch.toString()}>
                 Batch {batch}
               </option>
@@ -285,7 +367,9 @@ const RegisterStudentsPage = () => {
               ) : filteredStudents.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center">
-                    {students.length === 0 ? 'No students registered yet.' : 'No students found matching your criteria.'}
+                    {students.length === 0
+                      ? "No students registered yet."
+                      : "No students found matching your criteria."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -294,8 +378,8 @@ const RegisterStudentsPage = () => {
                     <TableCell>
                       <div className="flex items-center space-x-4">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage 
-                            src={student.imageUrl || undefined} 
+                          <AvatarImage
+                            src={student.imageUrl || undefined}
                             alt={student.name}
                           />
                           <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">
@@ -327,7 +411,9 @@ const RegisterStudentsPage = () => {
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{formatDate(student.dateOfBirth)}</span>
+                        <span className="text-sm">
+                          {formatDate(student.dateOfBirth)}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -337,7 +423,9 @@ const RegisterStudentsPage = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-muted-foreground">
-                        {formatDate(new Date(student._creationTime).toISOString())}
+                        {formatDate(
+                          new Date(student._creationTime).toISOString()
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -345,10 +433,27 @@ const RegisterStudentsPage = () => {
                         <Button variant="ghost" size="sm">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          onClick={() => onEdit(student._id)}
+                          variant="ghost"
+                          size="sm"
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 cursor-pointer"
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                "Are you sure you want to delete this student?"
+                              )
+                            ) {
+                              handleDeleteStudent(student._id);
+                            }
+                          }}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

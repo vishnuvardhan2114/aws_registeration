@@ -29,6 +29,6 @@ export const insertTransaction = mutation({
     rawResponse: v.any(),
   },
   handler: async (ctx, args) => {
-    await ctx.db.insert("transactions", args);
+    return await ctx.db.insert("transactions", args);
   },
 });

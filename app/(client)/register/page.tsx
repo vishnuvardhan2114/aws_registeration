@@ -1,33 +1,33 @@
 "use client";
 
-import React, { useMemo } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { 
-  Calendar, 
-  DollarSign, 
-  Utensils, 
-  Clock,
-  ArrowRight,
-  MapPin
-} from 'lucide-react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/app/components/ui/card';
-import { 
-  Button 
-} from '@/app/components/ui/button';
-import { 
-  Badge 
+import {
+  Badge
 } from '@/app/components/ui/badge';
-import { 
-  Skeleton 
+import {
+  Button
+} from '@/app/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/app/components/ui/card';
+import {
+  Skeleton
 } from '@/app/components/ui/skeleton';
+import { api } from '@/convex/_generated/api';
+import { useQuery } from 'convex/react';
+import {
+  ArrowRight,
+  Calendar,
+  Clock,
+  DollarSign,
+  MapPin,
+  Utensils
+} from 'lucide-react';
 import Link from 'next/link';
+import { useMemo } from 'react';
 
 const formatDate = (dateString: string) => {
   return new Intl.DateTimeFormat('en-IN', {
@@ -51,7 +51,7 @@ const getEventStatus = (startDate: string, endDate: string) => {
   const now = new Date();
   const start = new Date(startDate);
   const end = new Date(endDate);
-  
+
   if (now < start) {
     return { status: 'upcoming', label: 'Upcoming', className: 'bg-blue-100 text-blue-800 hover:bg-blue-100' };
   } else if (now >= start && now <= end) {
@@ -113,7 +113,7 @@ const EventsListingPage = () => {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => {
               const eventStatus = getEventStatus(event.StartDate, event.EndDate);
-              
+
               return (
                 <Card key={event._id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
                   <CardHeader className="pb-4">
@@ -130,7 +130,7 @@ const EventsListingPage = () => {
                       </Badge>
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent className="space-y-4">
                     {/* Event Duration */}
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -158,8 +158,8 @@ const EventsListingPage = () => {
 
                     {/* Registration Button */}
                     <Link href={`/register/${event._id}`} className="block">
-                      <Button 
-                        className="w-full" 
+                      <Button
+                        className="w-full"
                         size="lg"
                         disabled={eventStatus.status === 'ended'}
                       >

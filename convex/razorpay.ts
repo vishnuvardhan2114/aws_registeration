@@ -38,6 +38,7 @@ export const createRazorpayOrder = action({
         amount: amountInPaise,
         currency: "INR",
         receipt: `receipt_${Date.now()}`,
+        payment_capture: 1,
       };
 
       const order = await razorpay.orders.create(options);

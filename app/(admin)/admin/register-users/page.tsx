@@ -43,6 +43,7 @@ import {
 import { 
   Skeleton 
 } from '@/app/components/ui/skeleton';
+import ProfessionalLoader from '@/app/components/ProfessionalLoader';
 import { 
   Avatar, 
   AvatarFallback, 
@@ -108,9 +109,11 @@ const RegisterStudentsPage = () => {
       return matchesSearch && matchesBatch;
     });
   }, [students, searchTerm, batchFilter]);
-
   const uniqueBatches = useMemo(() => {
-    return [...new Set(students.map(student => student.batchYear))].sort((a, b) => b - a);
+    return [...new Set(students.map(student => student.batchYear))].sort((a, b) => {
+      // Convert to numbers before subtraction to avoid type errors
+      return Number(b) - Number(a);
+    });
   }, [students]);
 
   const totalStudents = students.length;
@@ -246,42 +249,15 @@ const RegisterStudentsPage = () => {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                // Loading skeleton rows
-                Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <div className="flex items-center space-x-4">
-                        <Skeleton className="h-12 w-12 rounded-full" />
-                        <div className="space-y-2">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-3 w-20" />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-2">
-                        <Skeleton className="h-4 w-48" />
-                        <Skeleton className="h-3 w-32" />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-24" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-6 w-16 rounded-full" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-28" />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Skeleton className="h-8 w-8 rounded" />
-                        <Skeleton className="h-8 w-8 rounded" />
-                        <Skeleton className="h-8 w-8 rounded" />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                <TableRow>
+                  <TableCell colSpan={6} className="py-20">
+                    <ProfessionalLoader 
+                      message="Loading students..." 
+                      size="lg"
+                      className="py-12"
+                    />
+                  </TableCell>
+                </TableRow>
               ) : filteredStudents.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center">

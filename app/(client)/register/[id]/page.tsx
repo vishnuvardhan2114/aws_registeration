@@ -47,6 +47,7 @@ const EventRegistrationPage = () => {
     const createRazorpayOrder = useAction(api.payments.createRazorpayOrder);
     const createTransactions = useAction(api.payments.createTransaction);
     const createToken = useMutation(api.tokens.addToken);
+    const sendReceiptEmail = useAction(api.email.sendReceiptEmail)
 
     const isLoading = event === undefined;
 
@@ -197,6 +198,33 @@ const EventRegistrationPage = () => {
                     studentId,
                     isUsed: false,
                 });
+
+                // Send receipt email
+                if(finalTokenResult && studentId){
+                    try {
+                        const emailResult = await sendReceiptEmail({
+                            email: "", // Will be fetched from database in the action
+                            studentName: "", // Will be fetched from database in the action
+                            eventName: event.name,
+                            transactionId,
+                        });
+                        
+                        if(emailResult.success) {
+                            console.log("Email sent successfully:", emailResult.message);
+                        } else {
+                            console.error("Email sending failed:", emailResult.message);
+                            toast.error(`Payment successful but email failed: ${emailResult.message}`);
+                        }
+                    } catch (emailError) {
+                        console.error("Email sending error:", emailError);
+                        toast.error("Payment successful but email could not be sent. Please contact support.");
+                    }
+                } else {
+                    console.warn("Email not sent - missing data:", { 
+                        hasTokenResult: !!finalTokenResult, 
+                        hasStudentId: !!studentId 
+                    });
+                }
 
                 // Clear timeout since we succeeded
                 clearTimeout(redirectTimeout);

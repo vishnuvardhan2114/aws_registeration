@@ -18,8 +18,6 @@ const formatDate = (dateString: string) => {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
     }).format(new Date(dateString));
 };
 
@@ -51,6 +49,8 @@ const EventsListingPage = () => {
     const isLoading = eventsData === undefined;
     const [loadingEventId, setLoadingEventId] = useState<string | null>(null);
     const router = useRouter();
+
+    
 
     return (
          <div className="min-h-screen bg-white">

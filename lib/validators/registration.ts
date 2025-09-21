@@ -35,8 +35,8 @@ export const registrationSchema = z.object({
 
   phoneNumber: z
     .string()
-    .min(10, "Phone number must be at least 10 digits")
-    .max(15, "Phone number must be less than 15 digits")
+    .min(10, "Phone number must be at least 10 digits without prefix of 0")
+    .max(11, "Phone number must be less than 11 digits with prefix of 0")
     .regex(/^[\d\s\-\+\(\)]+$/, "Please enter a valid phone number"),
 
   image: z

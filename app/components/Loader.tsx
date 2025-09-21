@@ -99,6 +99,8 @@ const Loader: React.FC = () => {
             <Image 
               src="/SGA.webp" 
               alt="SGA Logo" 
+              width={500}
+              height={500}
               className="h-16 sm:h-20 md:h-24 lg:h-28 xl:h-32 w-auto object-contain"
             />
           </div>

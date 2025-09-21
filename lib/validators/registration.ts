@@ -76,8 +76,8 @@ export type RegistrationFormData = z.infer<typeof registrationSchema>;
 
 // Batch years validation
 export const batchYears = Array.from(
-  { length: 16 },
-  (_, i) => 2010 + i
+  { length: new Date().getFullYear() - 1900 + 1 },
+  (_, i) => 1900 + i
 ).reverse();
 
 // Image file validation

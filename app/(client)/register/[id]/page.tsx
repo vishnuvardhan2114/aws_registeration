@@ -108,6 +108,8 @@ const EventRegistrationPage = () => {
             if (scriptToRemove && scriptToRemove === script) {
                 document.head.removeChild(scriptToRemove);
             }
+            // Restore body scroll when component unmounts
+            document.body.classList.remove('razorpay-modal-open');
         };
     }, []);
 
@@ -300,6 +302,16 @@ const EventRegistrationPage = () => {
                 order_id: orderData.id,
                 prefill: { name: "", email: "", contact: "" },
                 theme: { color: "#2563eb" },
+                // Fix touch and scroll issues
+                readonly: {
+                    email: false,
+                    contact: false,
+                    name: false,
+                },
+                // Improve mobile experience
+                image: 'https://registration.stgermainalumni.com/_next/image?url=%2FSGA.webp&w=1080&q=75',
+                // Disable auto-focus to prevent scroll issues
+                auto_focus: false,
                 handler: (response: any) => {
                     setIsProcessingPayment(false);
                     // Handle payment success immediately
@@ -309,14 +321,28 @@ const EventRegistrationPage = () => {
                     ondismiss: () => {
                         setIsProcessingPayment(false);
                         handleModalDismiss();
-                    }
+                    },
+                    escape: true,
+                    backdropclose: true,
                 },
             };
 
             // Initialize and open Razorpay
             const rzp = new window.Razorpay(razorpayOptions);
+            
+            // Prevent body scroll when modal opens
+            document.body.classList.add('razorpay-modal-open');
+            
+            // Listen for modal close to restore scroll
+            const originalOndismiss = razorpayOptions.modal.ondismiss;
+            razorpayOptions.modal.ondismiss = () => {
+                document.body.classList.remove('razorpay-modal-open');
+                if (originalOndismiss) originalOndismiss();
+            };
+            
             rzp.on("payment.failed", (error: any) => {
                 setIsProcessingPayment(false);
+                document.body.classList.remove('razorpay-modal-open');
                 handlePaymentFailure(error);
             });
             rzp.open();

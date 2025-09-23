@@ -91,6 +91,11 @@ const DonationForm: React.FC<DonationFormProps> = ({
     loadRazorpay().then((loaded) => {
       setRazorpayLoaded(!!loaded);
     });
+
+    // Cleanup: restore body scroll when component unmounts
+    return () => {
+      document.body.classList.remove('razorpay-modal-open');
+    };
   }, []);
 
   // Category icons mapping
@@ -220,6 +225,16 @@ const DonationForm: React.FC<DonationFormProps> = ({
         },
         timeout: 900,
         remember_customer: false,
+        // Fix touch and scroll issues
+        readonly: {
+          email: false,
+          contact: false,
+          name: false,
+        },
+        // Improve mobile experience
+        image: 'https://registration.stgermainalumni.com/_next/image?url=%2FSGA.webp&w=1080&q=75',
+        // Disable auto-focus to prevent scroll issues
+        auto_focus: false,
         handler: async (response: any) => {
           try {
             setIsProcessingPayment(true);
@@ -255,7 +270,14 @@ const DonationForm: React.FC<DonationFormProps> = ({
       };
 
       // Open Razorpay checkout
-      const razorpay = new window.Razorpay(options);
+      const razorpay = new window.Razorpay(options);  
+      // Listen for modal close to restore scroll
+      const originalOndismiss = options.modal.ondismiss;
+      options.modal.ondismiss = () => {
+        document.body.classList.remove('razorpay-modal-open');
+        if (originalOndismiss) originalOndismiss();
+      };
+      
       razorpay.open();
 
     } catch (error) {
@@ -510,19 +532,6 @@ const DonationForm: React.FC<DonationFormProps> = ({
           </div>
         </div>
       )}
-
-      {/* Razorpay Modal Styles */}
-      <style jsx global>{`
-        .razorpay-checkout-frame {
-          z-index: 9999 !important;
-        }
-        .razorpay-checkout-modal {
-          z-index: 9999 !important;
-        }
-        .razorpay-checkout-overlay {
-          z-index: 9998 !important;
-        }
-      `}</style>
     </div>
   );
 };

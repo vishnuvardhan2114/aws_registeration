@@ -17,11 +17,10 @@ export const DonationFormSchema = z.object({
   
   donorPhone: z
     .string()
-    .optional()
-    .refine((phone) => {
-      if (!phone) return true; // Optional field
-      return /^[6-9]\d{9}$/.test(phone);
-    }, "Please enter a valid 10-digit Indian mobile number"),
+    .min(10, "Phone number must be at least 10 digits without prefix of 0")
+    .max(11, "Phone number must be less than 11 digits with prefix of 0")
+    .regex(/^[\d\s\-\+\(\)]+$/, "Please enter a valid phone number")
+    .optional(),
   
   amount: z
     .number()

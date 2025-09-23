@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/pop
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Calendar, CalendarIcon, Camera, GraduationCap, Mail, Phone, Upload, User, X } from 'lucide-react'
+import { Calendar, CalendarIcon, Camera, GraduationCap, Mail, Phone, Upload, User, X, RotateCcw } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
@@ -30,6 +30,7 @@ export default function RegistrationForm({
   const [showCamera, setShowCamera] = useState(false)
   const [cameraError, setCameraError] = useState<string>('')
   const [isVideoReady, setIsVideoReady] = useState(false)
+  const [isFrontCamera, setIsFrontCamera] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -60,18 +61,19 @@ export default function RegistrationForm({
     }
   }
 
-  const startCamera = async () => {
+  const startCamera = async (useFrontCamera = false) => {
     try {
       setCameraError('')
       setIsVideoReady(false)
       setShowCamera(true)
+      setIsFrontCamera(useFrontCamera)
       
       // Small delay to ensure modal is rendered
       setTimeout(async () => {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
-              facingMode: 'environment',
+              facingMode: useFrontCamera ? 'user' : 'environment',
               width: { ideal: 1280 },
               height: { ideal: 720 }
             } 
@@ -109,6 +111,15 @@ export default function RegistrationForm({
     setShowCamera(false)
     setCameraError('')
     setIsVideoReady(false)
+  }
+
+  const switchCamera = async () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    setIsVideoReady(false)
+    await startCamera(!isFrontCamera)
   }
 
   const capturePhoto = () => {
@@ -235,7 +246,7 @@ export default function RegistrationForm({
                               </label>
                               <button
                                 type="button"
-                                onClick={startCamera}
+                                onClick={() => startCamera(false)}
                                 className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors"
                                 disabled={disabled || isLoading || isSubmitting}
                               >
@@ -452,7 +463,12 @@ export default function RegistrationForm({
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Take Photo</h3>
+              <div>
+                <h3 className="text-lg font-semibold">Take Photo</h3>
+                <p className="text-sm text-gray-600">
+                  {isFrontCamera ? 'Front Camera' : 'Back Camera'}
+                </p>
+              </div>
               <button
                 onClick={stopCamera}
                 className="text-gray-500 hover:text-gray-700"
@@ -465,7 +481,7 @@ export default function RegistrationForm({
               <div className="text-center py-8">
                 <p className="text-red-600 mb-4">{cameraError}</p>
                 <button
-                  onClick={startCamera}
+                  onClick={() => startCamera(isFrontCamera)}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
                 >
                   Try Again
@@ -480,7 +496,7 @@ export default function RegistrationForm({
                     playsInline
                     muted
                     className="w-full h-64 bg-gray-100 rounded-lg object-cover"
-                    style={{ transform: 'scaleX(-1)' }} // Mirror the video for better UX
+                    style={{ transform: isFrontCamera ? 'scaleX(-1)' : 'none' }} // Mirror only front camera
                   />
                   <canvas ref={canvasRef} className="hidden" />
                   {!isVideoReady && (
@@ -500,6 +516,14 @@ export default function RegistrationForm({
                     className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isVideoReady ? 'Capture Photo' : 'Loading...'}
+                  </button>
+                  <button
+                    onClick={switchCamera}
+                    disabled={!isVideoReady}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={`Switch to ${isFrontCamera ? 'back' : 'front'} camera`}
+                  >
+                    <RotateCcw className="h-4 w-4" />
                   </button>
                   <button
                     onClick={stopCamera}

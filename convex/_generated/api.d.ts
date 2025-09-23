@@ -10,6 +10,10 @@
 
 import type * as auth from "../auth.js";
 import type * as dashboard from "../dashboard.js";
+import type * as donationCategories from "../donationCategories.js";
+import type * as donationEmail from "../donationEmail.js";
+import type * as donationPayments from "../donationPayments.js";
+import type * as donations from "../donations.js";
 import type * as email from "../email.js";
 import type * as events from "../events.js";
 import type * as http from "../http.js";
@@ -17,6 +21,8 @@ import type * as payments from "../payments.js";
 import type * as razorpay from "../razorpay.js";
 import type * as storage from "../storage.js";
 import type * as students from "../students.js";
+import type * as tables_donationCategories from "../tables/donationCategories.js";
+import type * as tables_donations from "../tables/donations.js";
 import type * as tables_events from "../tables/events.js";
 import type * as tables_students from "../tables/students.js";
 import type * as tables_tokens from "../tables/tokens.js";
@@ -44,6 +50,10 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   dashboard: typeof dashboard;
+  donationCategories: typeof donationCategories;
+  donationEmail: typeof donationEmail;
+  donationPayments: typeof donationPayments;
+  donations: typeof donations;
   email: typeof email;
   events: typeof events;
   http: typeof http;
@@ -51,6 +61,8 @@ declare const fullApi: ApiFromModules<{
   razorpay: typeof razorpay;
   storage: typeof storage;
   students: typeof students;
+  "tables/donationCategories": typeof tables_donationCategories;
+  "tables/donations": typeof tables_donations;
   "tables/events": typeof tables_events;
   "tables/students": typeof tables_students;
   "tables/tokens": typeof tables_tokens;

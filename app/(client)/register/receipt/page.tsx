@@ -1,6 +1,7 @@
 "use client";
 
 import DownloadableReceipt from '@/app/components/DownloadableReceipt';
+import DonationCTA from '@/app/components/DonationCTA';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
@@ -85,6 +86,16 @@ const ReceiptPage = () => {
               fileName={`event_receipt_${tokenId}.pdf`}
             />
           </div>
+
+          {/* Donation CTA */}
+          <DonationCTA
+            donorInfo={{
+              name: registrationDetails.student.name,
+              email: registrationDetails.student.email,
+              phone: registrationDetails.student.phoneNumber,
+            }}
+            eventName={registrationDetails.event.name}
+          />
         </div>
       </div>
     </div>

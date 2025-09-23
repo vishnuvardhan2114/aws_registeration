@@ -9,12 +9,21 @@ export const getDashboardStats = query({
     totalRevenue: v.number(),
     totalTransactions: v.number(),
     activeEvents: v.number(),
+    totalDonations: v.number(),
+    totalDonationAmount: v.number(),
     recentTransactions: v.array(v.object({
       _id: v.id("transactions"),
       _creationTime: v.number(),
       amount: v.number(),
       status: v.string(),
       method: v.string(),
+    })),
+    recentDonations: v.array(v.object({
+      _id: v.id("donations"),
+      _creationTime: v.number(),
+      amount: v.number(),
+      status: v.string(),
+      donorName: v.string(),
     })),
   }),
   handler: async (ctx) => {
@@ -30,6 +39,13 @@ export const getDashboardStats = query({
     const totalRevenue = transactions
       .filter(t => t.status === "captured")
       .reduce((sum, t) => sum + t.amount, 0);
+
+    // Get donations data
+    const donations = await ctx.db.query("donations").collect();
+    const totalDonations = donations.length;
+    const totalDonationAmount = donations
+      .filter(d => d.status === "captured")
+      .reduce((sum, d) => sum + d.amount, 0);
 
     // Get active events (events that haven't ended yet)
     const now = new Date();
@@ -51,12 +67,27 @@ export const getDashboardStats = query({
         method: t.method,
       }));
 
+    // Get recent donations (last 5)
+    const recentDonations = donations
+      .sort((a, b) => b._creationTime - a._creationTime)
+      .slice(0, 5)
+      .map(d => ({
+        _id: d._id,
+        _creationTime: d._creationTime,
+        amount: d.amount,
+        status: d.status,
+        donorName: d.donorName,
+      }));
+
     return {
       totalStudents,
       totalRevenue,
       totalTransactions,
       activeEvents,
+      totalDonations,
+      totalDonationAmount,
       recentTransactions,
+      recentDonations,
     };
   },
 });

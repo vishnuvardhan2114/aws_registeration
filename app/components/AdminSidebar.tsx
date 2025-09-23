@@ -11,7 +11,8 @@ import {
     Calendar,
     LogOut,
     ChevronRight,
-    Settings
+    Settings,
+    Heart
 } from 'lucide-react'
 import {
     Sidebar,
@@ -47,6 +48,12 @@ const navigationItems = [
         url: '/admin/transactions',
         icon: CreditCard,
         description: 'Payment History'
+    },
+    {
+        title: 'Donations',
+        url: '/admin/donations',
+        icon: Heart,
+        description: 'Manage Donations'
     },
     {
         title: 'Events',

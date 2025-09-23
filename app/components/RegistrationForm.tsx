@@ -8,9 +8,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/pop
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Calendar, CalendarIcon, GraduationCap, Mail, Phone, Upload, User, X } from 'lucide-react'
+import { Calendar, CalendarIcon, Camera, GraduationCap, Mail, Phone, Upload, User, X } from 'lucide-react'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 
 // Types and validators
@@ -27,6 +27,12 @@ export default function RegistrationForm({
   initialValues,
 }: RegistrationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showCamera, setShowCamera] = useState(false)
+  const [cameraError, setCameraError] = useState<string>('')
+  const [isVideoReady, setIsVideoReady] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
   const { imageState, handleImageUpload: handleImageState, removeImage } = useImageUpload()
 
   const form = useForm<RegistrationFormData>({
@@ -51,6 +57,85 @@ export default function RegistrationForm({
       form.clearErrors('image')
     } else {
       form.setError('image', { message: result.error || 'Invalid file' })
+    }
+  }
+
+  const startCamera = async () => {
+    try {
+      setCameraError('')
+      setIsVideoReady(false)
+      setShowCamera(true)
+      
+      // Small delay to ensure modal is rendered
+      setTimeout(async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            } 
+          })
+          
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream
+            streamRef.current = stream
+            
+            // Ensure video plays
+            videoRef.current.onloadedmetadata = () => {
+              if (videoRef.current) {
+                videoRef.current.play().then(() => {
+                  setIsVideoReady(true)
+                }).catch(console.error)
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Camera error:', error)
+          setCameraError('Unable to access camera. Please check permissions.')
+        }
+      }, 100)
+    } catch (error) {
+      console.error('Camera error:', error)
+      setCameraError('Unable to access camera. Please check permissions.')
+    }
+  }
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    setShowCamera(false)
+    setCameraError('')
+    setIsVideoReady(false)
+  }
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current
+      const video = videoRef.current
+      const context = canvas.getContext('2d')
+      
+      if (context) {
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        context.drawImage(video, 0, 0)
+        
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' })
+            const result = await handleImageState(file)
+            if (result.success) {
+              form.setValue('image', file)
+              form.clearErrors('image')
+              stopCamera()
+            } else {
+              form.setError('image', { message: result.error || 'Failed to process photo' })
+            }
+          }
+        }, 'image/jpeg', 0.8)
+      }
     }
   }
 
@@ -115,8 +200,8 @@ export default function RegistrationForm({
                 render={() => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
-                      Upload Photo
+                      <Camera className="h-4 w-4" />
+                      Photo
                     </FormLabel>
                     <div className="space-y-4">
                       {!imageState.preview ? (
@@ -129,18 +214,39 @@ export default function RegistrationForm({
                             id="image-upload"
                             disabled={disabled || isLoading || isSubmitting}
                           />
-                          <label
-                            htmlFor="image-upload"
-                            className="cursor-pointer flex flex-col items-center gap-2"
-                          >
-                            <Upload className="h-8 w-8 text-muted-foreground" />
-                            <div className="text-sm text-muted-foreground">
-                              <span className="text-primary font-medium">Click to upload</span> or drag and drop
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleImageFileUpload}
+                            className="hidden"
+                            id="camera-capture"
+                            disabled={disabled || isLoading || isSubmitting}
+                          />
+                          
+                          <div className="flex flex-col items-center gap-4">
+                            <div className="flex gap-3">
+                              <label
+                                htmlFor="image-upload"
+                                className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                              >
+                                <Upload className="h-4 w-4" />
+                                Upload Photo
+                              </label>
+                              <button
+                                type="button"
+                                onClick={startCamera}
+                                className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors"
+                                disabled={disabled || isLoading || isSubmitting}
+                              >
+                                <Camera className="h-4 w-4" />
+                                Take Photo
+                              </button>
                             </div>
                             <div className="text-xs text-muted-foreground">
                               PNG, JPG up to 5MB
                             </div>
-                          </label>
+                          </div>
                         </div>
                       ) : (
                         <div className="relative inline-block">
@@ -340,6 +446,73 @@ export default function RegistrationForm({
           </div>
         </form>
       </Form>
+
+      {/* Camera Modal */}
+      {showCamera && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Take Photo</h3>
+              <button
+                onClick={stopCamera}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            {cameraError ? (
+              <div className="text-center py-8">
+                <p className="text-red-600 mb-4">{cameraError}</p>
+                <button
+                  onClick={startCamera}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="relative">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-64 bg-gray-100 rounded-lg object-cover"
+                    style={{ transform: 'scaleX(-1)' }} // Mirror the video for better UX
+                  />
+                  <canvas ref={canvasRef} className="hidden" />
+                  {!isVideoReady && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                      <div className="text-center">
+                        <Camera className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                        <p className="text-sm text-gray-500">Starting camera...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={capturePhoto}
+                    disabled={!isVideoReady}
+                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isVideoReady ? 'Capture Photo' : 'Loading...'}
+                  </button>
+                  <button
+                    onClick={stopCamera}
+                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

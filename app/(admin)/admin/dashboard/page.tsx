@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react'
-import { Users, CreditCard, Calendar, TrendingUp } from 'lucide-react'
+import { Users, CreditCard, Calendar, TrendingUp, Heart } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -62,20 +62,20 @@ const AdminDashboardPage = () => {
       bgColor: 'bg-green-50',
     },
     {
+      title: 'Total Donations',
+      value: formatCurrency(dashboardStats.totalDonationAmount),
+      description: `${formatNumber(dashboardStats.totalDonations)} donations`,
+      icon: Heart,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+    },
+    {
       title: 'Active Events',
       value: formatNumber(dashboardStats.activeEvents),
       description: `${formatNumber(dashboardStats.totalTransactions)} total registrations`,
       icon: Calendar,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
-    },
-    {
-      title: 'Weekly Revenue',
-      value: formatCurrency(revenueStats.weeklyRevenue),
-      description: `${formatCurrency(revenueStats.dailyRevenue)} today`,
-      icon: TrendingUp,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
     },
   ]
 

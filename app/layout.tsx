@@ -12,8 +12,8 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "AWS Registeration",
-  description: "AWS Registeration",
+  title: "AGM Registration",
+  description: "AGM Registration",
 };
 
 export default function RootLayout({

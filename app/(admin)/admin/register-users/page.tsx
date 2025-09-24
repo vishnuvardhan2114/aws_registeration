@@ -134,16 +134,12 @@ const RegisterStudentsPage = () => {
             Manage and view all registered students
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        {/* <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Student
-          </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Stats Cards */}
@@ -228,7 +224,7 @@ const RegisterStudentsPage = () => {
       {/* Students Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Students List</CardTitle>
+          <CardTitle>Registered Users List</CardTitle>
           <CardDescription>
             {isLoading ? (
               <Skeleton className="h-4 w-32" as="span" />
@@ -241,7 +237,7 @@ const RegisterStudentsPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Student</TableHead>
+                <TableHead>Users</TableHead>
                 <TableHead>Contact</TableHead>
                 <TableHead>Date of Birth</TableHead>
                 <TableHead>Batch Year</TableHead>

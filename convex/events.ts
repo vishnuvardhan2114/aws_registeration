@@ -103,3 +103,118 @@ export const getActiveEvents = query({
       .collect();
   },
 });
+
+// Get event statistics (registered users count and total amount collected)
+export const getEventStats = query({
+  args: { eventId: v.id("events") },
+  returns: v.object({
+    totalRegistrations: v.number(),
+    totalAmountCollected: v.number(),
+    foodCouponsUsed: v.number(),
+    foodCouponsAvailable: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    // Get all tokens for this event
+    const tokens = await ctx.db
+      .query("tokens")
+      .filter((q) => q.eq(q.field("eventId"), args.eventId))
+      .collect();
+
+    // Get all transactions for these tokens
+    const transactionIds = tokens.map(token => token.transactionId);
+    const transactions = await Promise.all(
+      transactionIds.map(id => ctx.db.get(id))
+    );
+
+    // Filter out null transactions and calculate stats
+    const validTransactions = transactions.filter(t => t !== null);
+    const totalAmountCollected = validTransactions.reduce((sum, t) => sum + (t?.amount || 0), 0);
+    const foodCouponsUsed = tokens.filter(token => token.isUsed).length;
+    const foodCouponsAvailable = tokens.length - foodCouponsUsed;
+
+    return {
+      totalRegistrations: tokens.length,
+      totalAmountCollected,
+      foodCouponsUsed,
+      foodCouponsAvailable,
+    };
+  },
+});
+
+// Get all registered users for a specific event with their details
+export const getEventRegistrations = query({
+  args: { eventId: v.id("events") },
+  returns: v.array(v.object({
+    _id: v.id("tokens"),
+    _creationTime: v.number(),
+    isUsed: v.boolean(),
+    uniqueCode: v.string(),
+    student: v.object({
+      _id: v.id("students"),
+      name: v.string(),
+      email: v.string(),
+      phoneNumber: v.string(),
+      batchYear: v.number(),
+      imageUrl: v.optional(v.string()),
+    }),
+    transaction: v.object({
+      _id: v.id("transactions"),
+      amount: v.number(),
+      status: v.string(),
+      method: v.string(),
+      created_at: v.string(),
+    }),
+  })),
+  handler: async (ctx, args) => {
+    // Get all tokens for this event
+    const tokens = await ctx.db
+      .query("tokens")
+      .filter((q) => q.eq(q.field("eventId"), args.eventId))
+      .order("desc")
+      .collect();
+
+    // Get details for each registration
+    const registrations = await Promise.all(
+      tokens.map(async (token) => {
+        const student = await ctx.db.get(token.studentId);
+        const transaction = await ctx.db.get(token.transactionId);
+        
+        if (!student || !transaction) {
+          return null;
+        }
+
+        // Resolve student image URL if storage ID exists
+        let imageUrl: string | undefined = undefined;
+        if (student.imageStorageId) {
+          const url = await ctx.storage.getUrl(student.imageStorageId);
+          imageUrl = url || undefined;
+        }
+
+        return {
+          _id: token._id,
+          _creationTime: token._creationTime,
+          isUsed: token.isUsed,
+          uniqueCode: token.uniqueCode,
+          student: {
+            _id: student._id,
+            name: student.name,
+            email: student.email,
+            phoneNumber: student.phoneNumber,
+            batchYear: student.batchYear,
+            imageUrl,
+          },
+          transaction: {
+            _id: transaction._id,
+            amount: transaction.amount,
+            status: transaction.status,
+            method: transaction.method,
+            created_at: transaction.created_at,
+          },
+        };
+      })
+    );
+
+    // Filter out null registrations
+    return registrations.filter(reg => reg !== null);
+  },
+});

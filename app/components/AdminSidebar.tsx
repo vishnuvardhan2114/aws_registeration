@@ -11,7 +11,6 @@ import {
     Calendar,
     LogOut,
     ChevronRight,
-    Settings,
     Heart
 } from 'lucide-react'
 import {
@@ -38,7 +37,7 @@ const navigationItems = [
         description: 'Overview & Analytics'
     },
     {
-        title: 'Students',
+        title: 'Users',
         url: '/admin/register-users',
         icon: Users,
         description: 'Manage Registrations'

@@ -297,7 +297,7 @@ const EventRegistrationPage = () => {
                 key: razorpayKeyId,
                 amount: event.amount * 100,
                 currency: "INR",
-                name: "Event Registration System",
+                name: "SGA Registration",
                 description: `Registration for ${event.name}`,
                 order_id: orderData.id,
                 prefill: { name: "", email: "", contact: "" },

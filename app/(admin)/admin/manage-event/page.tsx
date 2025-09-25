@@ -356,7 +356,6 @@ const ManageEventPage = () => {
         onSave={handleSaveEvent}
         event={editingEvent}
       />
-      
     </div>
   )
 }

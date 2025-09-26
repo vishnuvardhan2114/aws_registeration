@@ -34,6 +34,7 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
+            
             <Toaster position="top-center" richColors />
           </ConvexClientProvider>
         </ConvexAuthNextjsServerProvider>

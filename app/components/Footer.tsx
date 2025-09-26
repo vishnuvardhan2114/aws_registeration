@@ -24,7 +24,7 @@ export default function Footer() {
               <h3 className="text-lg font-semibold">OBA St Germain institute</h3>
             </div>
             <p className="text-gray-300 text-sm">
-             contact: <input type="email" value="info@stgermainalumni.com" />
+             contact: <input type="email" value="info@stgermainalumni.com" readOnly />
             </p>
           </div>
 

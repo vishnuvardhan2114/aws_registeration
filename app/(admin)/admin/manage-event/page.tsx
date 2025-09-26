@@ -150,7 +150,7 @@ const ManageEventPage = () => {
   }
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-8 md:p-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Manage Events</h1>

@@ -8,9 +8,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/pop
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Calendar, CalendarIcon, Camera, GraduationCap, Mail, Phone, Upload, User, X, RotateCcw } from 'lucide-react'
+import { Calendar, CalendarIcon, Camera, GraduationCap, Mail, Phone, RotateCcw, Upload, User, X } from 'lucide-react'
 import Image from 'next/image'
-import { useState, useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 // Types and validators
@@ -67,22 +67,22 @@ export default function RegistrationForm({
       setIsVideoReady(false)
       setShowCamera(true)
       setIsFrontCamera(useFrontCamera)
-      
+
       // Small delay to ensure modal is rendered
       setTimeout(async () => {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { 
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
               facingMode: useFrontCamera ? 'user' : 'environment',
               width: { ideal: 1280 },
               height: { ideal: 720 }
-            } 
+            }
           })
-          
+
           if (videoRef.current) {
             videoRef.current.srcObject = stream
             streamRef.current = stream
-            
+
             // Ensure video plays
             videoRef.current.onloadedmetadata = () => {
               if (videoRef.current) {
@@ -127,12 +127,12 @@ export default function RegistrationForm({
       const canvas = canvasRef.current
       const video = videoRef.current
       const context = canvas.getContext('2d')
-      
+
       if (context) {
         canvas.width = video.videoWidth
         canvas.height = video.videoHeight
         context.drawImage(video, 0, 0)
-        
+
         canvas.toBlob(async (blob) => {
           if (blob) {
             const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' })
@@ -234,7 +234,7 @@ export default function RegistrationForm({
                             id="camera-capture"
                             disabled={disabled || isLoading || isSubmitting}
                           />
-                          
+
                           <div className="flex flex-col items-center gap-4">
                             <div className="flex gap-3">
                               <label
@@ -451,7 +451,8 @@ export default function RegistrationForm({
                   Processing...
                 </div>
               ) : (
-                'Proceed to Payment'
+                // 'Proceed to Payment' change it to
+                'Register For Event'
               )}
             </Button>
           </div>
@@ -476,7 +477,7 @@ export default function RegistrationForm({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            
+
             {cameraError ? (
               <div className="text-center py-8">
                 <p className="text-red-600 mb-4">{cameraError}</p>
@@ -508,7 +509,7 @@ export default function RegistrationForm({
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex gap-3">
                   <button
                     onClick={capturePhoto}

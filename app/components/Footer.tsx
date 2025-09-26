@@ -16,10 +16,10 @@ export default function Footer() {
                 height={40}
                 className="rounded-lg"
               />
-              <h3 className="text-lg font-semibold">SGA Registration</h3>
+              <h3 className="text-lg font-semibold">OBA St Germain institute</h3>
             </div>
             <p className="text-gray-300 text-sm">
-              Streamlining event registration
+             contact: <input type="email" value="info@stgermainalumni.com" />
             </p>
           </div>
 
@@ -72,14 +72,6 @@ export default function Footer() {
                   className="text-gray-300 hover:text-white transition-colors text-sm"
                 >
                   Cancellation Policy
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  href="/contact" 
-                  className="text-gray-300 hover:text-white transition-colors text-sm"
-                >
-                  Contact Us
                 </Link>
               </li>
             </ul>

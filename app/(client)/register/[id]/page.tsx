@@ -44,6 +44,8 @@ const EventRegistrationPage = () => {
   const event = useQuery(api.events.getEvent, { eventId });
   const generateUploadStorageUrl = useMutation(api.storage.generateUploadUrl);
   const addOrUpdateStudent = useMutation(api.students.addOrUpdateStudent);
+  const addToken = useMutation(api.tokens.addToken)
+  const createCoTransactionAndUpdateToken = useMutation(api.coTransactions.createCoTransactionAndUpdateToken)
   const createRazorpayOrder = useAction(api.payments.createRazorpayOrder);
   const createTransactions = useAction(api.payments.createTransaction);
   const createToken = useMutation(api.tokens.addToken);
@@ -384,6 +386,17 @@ const EventRegistrationPage = () => {
       const studentId = await addOrUpdateStudent(formatedData);
       setStudentId(studentId);
       setRegistrationCompleted(true);
+
+      //crate a token just for the manual transaction without payment
+      await addToken({
+        studentId: studentId,
+        eventId: eventId,
+        isUsed: false,
+      })
+      await createCoTransactionAndUpdateToken({
+        studentId: studentId,
+        eventId: eventId,
+      })
 
       // Save student data to local storage for auto-fill
       const studentDataForStorage = {

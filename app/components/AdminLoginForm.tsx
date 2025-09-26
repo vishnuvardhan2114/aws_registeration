@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
-import { gsap } from 'gsap'
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react'
 import { Button } from '@/app/components/ui/button'
 import { Input } from '@/app/components/ui/input'
 import { Label } from '@/app/components/ui/label'
+import { gsap } from 'gsap'
+import { ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react'
+import React, { useState } from 'react'
 
 interface AdminLoginFormProps {
   onSubmit: (formData: FormData) => void
@@ -17,7 +17,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    flow: 'signIn'
+    flow: 'signUp'
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,13 +41,13 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
         ease: "power2.inOut"
       })
     }
-    
+
     // Create FormData with current state values
     const submitFormData = new FormData()
     submitFormData.append('email', formData.email)
     submitFormData.append('password', formData.password)
     submitFormData.append('flow', formData.flow)
-    
+
     // Pass FormData to parent
     onSubmit(submitFormData)
   }

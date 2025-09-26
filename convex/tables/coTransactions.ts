@@ -10,5 +10,5 @@ export const coTransactions = defineTable({
     v.literal("exception")
   ),
   method: v.union(v.literal("cash"), v.literal("upi")),
-  storageId: v.id("_storage"),
+  storageId: v.optional(v.id("_storage")),
 });

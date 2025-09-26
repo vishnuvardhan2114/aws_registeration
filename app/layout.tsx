@@ -4,6 +4,7 @@ import "./globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { Toaster } from "sonner";
 import ConvexClientProvider from "./components/Providers/ConvexClientProvider";
+import Footer from "./components/Footer";
 
 const jost = Jost({
   variable: "--font-jost",
@@ -24,12 +25,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${jost.variable} antialiased`}
+        className={`${jost.variable} antialiased min-h-screen flex flex-col`}
         suppressHydrationWarning={true}
       >
         <ConvexAuthNextjsServerProvider>
           <ConvexClientProvider>
-            {children}
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
             <Toaster position="top-center" richColors />
           </ConvexClientProvider>
         </ConvexAuthNextjsServerProvider>

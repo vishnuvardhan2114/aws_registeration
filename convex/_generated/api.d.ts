@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as coTransactions from "../coTransactions.js";
 import type * as dashboard from "../dashboard.js";
 import type * as donationCategories from "../donationCategories.js";
 import type * as donationEmail from "../donationEmail.js";
@@ -21,6 +22,7 @@ import type * as payments from "../payments.js";
 import type * as razorpay from "../razorpay.js";
 import type * as storage from "../storage.js";
 import type * as students from "../students.js";
+import type * as tables_coTransactions from "../tables/coTransactions.js";
 import type * as tables_donationCategories from "../tables/donationCategories.js";
 import type * as tables_donations from "../tables/donations.js";
 import type * as tables_events from "../tables/events.js";
@@ -49,6 +51,7 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  coTransactions: typeof coTransactions;
   dashboard: typeof dashboard;
   donationCategories: typeof donationCategories;
   donationEmail: typeof donationEmail;
@@ -61,6 +64,7 @@ declare const fullApi: ApiFromModules<{
   razorpay: typeof razorpay;
   storage: typeof storage;
   students: typeof students;
+  "tables/coTransactions": typeof tables_coTransactions;
   "tables/donationCategories": typeof tables_donationCategories;
   "tables/donations": typeof tables_donations;
   "tables/events": typeof tables_events;

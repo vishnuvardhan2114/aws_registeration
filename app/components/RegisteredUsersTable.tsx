@@ -236,7 +236,7 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
-              <span className="truncate">Registered Users ({users.length})</span>
+              <span className="truncate">Registered Users</span>
             </CardTitle>
             <Button
               onClick={handleExportCSV}

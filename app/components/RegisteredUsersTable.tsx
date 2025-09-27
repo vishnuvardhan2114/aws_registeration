@@ -196,7 +196,7 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <div
-                              className={`w-2 h-2 rounded-full ${calculateAge(user.dateOfBirth) >= 21
+                              className={`w-4 h-4 rounded-full ${calculateAge(user.dateOfBirth) >= 21
                                 ? 'bg-green-500'
                                 : 'bg-red-500'
                                 }`}

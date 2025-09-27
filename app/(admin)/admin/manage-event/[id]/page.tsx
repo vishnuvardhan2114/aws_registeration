@@ -112,19 +112,19 @@ const EventDetailPage = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.back()}
-            className="hover:bg-gray-100"
+            className="hover:bg-gray-100 flex-shrink-0"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">{event.name}</h1>
-            <p className="text-gray-600">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 truncate">{event.name}</h1>
+            <p className="text-sm sm:text-base text-gray-600 truncate">
               Event ID: {event._id.slice(-8)} • Created {new Date(event._creationTime).toLocaleDateString()}
             </p>
           </div>
@@ -137,7 +137,7 @@ const EventDetailPage = () => {
                 ? "secondary"
                 : "outline"
           }
-          className="text-sm"
+          className="text-sm self-start sm:self-center mt-2 sm:mt-0"
         >
           {isEventActive(event.StartDate, event.EndDate)
             ? "Active"

@@ -29,7 +29,7 @@ const ManageEventPage = () => {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [sortField, setSortField] = useState<'name' | 'StartDate' | 'amount' | '_creationTime'>('_creationTime')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
-  
+
   const router = useRouter()
   const events = useQuery(api.events.getAllEvents) || []
   const addEvent = useMutation(api.events.addEvent)
@@ -158,8 +158,8 @@ const ManageEventPage = () => {
             Create and manage your registration events
           </p>
         </div>
-        <Button 
-          onClick={handleAddEvent} 
+        <Button
+          onClick={handleAddEvent}
           className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white shadow-sm w-full md:w-auto"
         >
           <Plus className="h-4 w-4" />
@@ -197,7 +197,7 @@ const ManageEventPage = () => {
               <Table className="min-w-[800px]">
                 <TableHeader className="bg-gray-50">
                   <TableRow className="border-b border-gray-200">
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900 min-w-[200px]"
                       onClick={() => handleSort('name')}
                     >
@@ -206,7 +206,7 @@ const ManageEventPage = () => {
                         <ArrowUpDown className="h-4 w-4" />
                       </div>
                     </TableHead>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900 min-w-[180px]"
                       onClick={() => handleSort('StartDate')}
                     >
@@ -215,7 +215,7 @@ const ManageEventPage = () => {
                         <ArrowUpDown className="h-4 w-4" />
                       </div>
                     </TableHead>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900 min-w-[120px]"
                       onClick={() => handleSort('amount')}
                     >
@@ -226,7 +226,7 @@ const ManageEventPage = () => {
                     </TableHead>
                     <TableHead className="font-semibold text-gray-900 min-w-[100px]">Status</TableHead>
                     <TableHead className="font-semibold text-gray-900 min-w-[120px]">Features</TableHead>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900 min-w-[100px]"
                       onClick={() => handleSort('_creationTime')}
                     >
@@ -240,8 +240,8 @@ const ManageEventPage = () => {
                 </TableHeader>
                 <TableBody>
                   {sortedEvents.map((event) => (
-                    <TableRow 
-                      key={event._id} 
+                    <TableRow
+                      key={event._id}
                       className="cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100"
                       onClick={() => handleViewEvent(event._id)}
                     >
@@ -275,21 +275,21 @@ const ManageEventPage = () => {
                         </div>
                       </TableCell>
                       <TableCell className="min-w-[100px]">
-                        <Badge 
+                        <Badge
                           variant={
-                            isEventActive(event.StartDate, event.EndDate) 
-                              ? "default" 
-                              : isEventUpcoming(event.StartDate) 
-                              ? "secondary" 
-                              : "outline"
+                            isEventActive(event.StartDate, event.EndDate)
+                              ? "default"
+                              : isEventUpcoming(event.StartDate)
+                                ? "secondary"
+                                : "outline"
                           }
                           className="whitespace-nowrap"
                         >
-                          {isEventActive(event.StartDate, event.EndDate) 
-                            ? "Active" 
-                            : isEventUpcoming(event.StartDate) 
-                            ? "Upcoming" 
-                            : "Ended"
+                          {isEventActive(event.StartDate, event.EndDate)
+                            ? "Active"
+                            : isEventUpcoming(event.StartDate)
+                              ? "Upcoming"
+                              : "Ended"
                           }
                         </Badge>
                       </TableCell>

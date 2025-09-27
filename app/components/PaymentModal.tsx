@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/componen
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
-import { useMutation } from "convex/react";
+import { useMutation, useAction } from "convex/react";
 import { Banknote, CreditCard, Smartphone } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from 'sonner';
@@ -39,6 +39,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     api.coTransactions.createCoTransactionAndUpdateToken
   );
   const generateUploadStorageUrl = useMutation(api.storage.generateUploadUrl);
+  const sendPaymentConfirmationEmail = useAction(api.email.sendPaymentConfirmationEmail);
 
   const storeFile = async (file: File): Promise<Id<"_storage"> | undefined> => {
     try {
@@ -112,8 +113,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      let coTransactionResult;
+      
       if (isException) {
-        await createCoTransactionAndUpdateToken({
+        coTransactionResult = await createCoTransactionAndUpdateToken({
           eventId,
           studentId: user.studentId as Id<"students">,
           paymentMethod: "upi", // fallback, since Convex expects a method
@@ -124,7 +127,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         if (receiptFile) {
           storageId = await storeFile(receiptFile);
         }
-        await createCoTransactionAndUpdateToken({
+        coTransactionResult = await createCoTransactionAndUpdateToken({
           eventId,
           studentId: user.studentId as Id<"students">,
           paymentMethod: selectedMethod,
@@ -132,9 +135,30 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           storageId
         });
       }
+
+      // Send payment confirmation email if transaction was successful
+      if (coTransactionResult?.coTransactionId) {
+        try {
+          const emailResult = await sendPaymentConfirmationEmail({
+            coTransactionId: coTransactionResult.coTransactionId,
+          });
+
+          if (emailResult.success) {
+            toast.success("Payment confirmed and email sent successfully!");
+          } else {
+            toast.success("Payment confirmed, but email could not be sent.");
+            console.error("Email sending failed:", emailResult.message);
+          }
+        } catch (emailError) {
+          toast.success("Payment confirmed, but email could not be sent.");
+          console.error("Email sending error:", emailError);
+        }
+      }
+
       resetForm();
     } catch (error) {
       console.error("Payment submission error:", error);
+      toast.error("Payment submission failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

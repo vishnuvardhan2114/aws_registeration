@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { api } from "./_generated/api";
 import { action } from "./_generated/server";
 import { Resend as ResendAPI } from "resend";
+// import { generatePaymentConfirmationEmail } from "./utils/templates/paymentReceipt"; // Not used directly, called via query
 
 export const sendReceiptEmail = action({
    args: {
@@ -168,7 +169,6 @@ function generateRegistrationConfirmationTemplate({
    eventStartDate,
    eventEndDate,
    eventAmount,
-   isFoodIncluded,
    registrationDate,
 }: {
    studentName: string;
@@ -397,3 +397,77 @@ function generateRegistrationConfirmationTemplate({
 </html>
    `;
 }
+
+export const sendPaymentConfirmationEmail = action({
+   args: {
+      coTransactionId: v.id("coTransactions"),
+   },
+   returns: v.object({
+      success: v.boolean(),
+      coTransactionId: v.id("coTransactions"),
+      message: v.string(),
+   }),
+   handler: async (ctx, args) => {
+      try {
+         // Get registration details from database using coTransaction ID
+         const registrationDetails = await ctx.runQuery(
+            api.tokens.getRegistrationDetailsByCoTransactionId,
+            { coTransactionId: args.coTransactionId }
+         );
+
+         if (!registrationDetails) {
+            return {
+               success: false,
+               coTransactionId: args.coTransactionId,
+               message: "Registration details not found",
+            };
+         }
+
+         // Generate the HTML payment confirmation template
+         const htmlTemplate = await ctx.runQuery(
+            api.transactions.getPaymentConfirmationEmail,
+            { coTransactionId: args.coTransactionId }
+         );
+
+         if (!htmlTemplate) {
+            return {
+               success: false,
+               coTransactionId: args.coTransactionId,
+               message: "Failed to generate payment confirmation template",
+            };
+         }
+
+         // Get student email from registration details
+         const studentEmail = registrationDetails.student.email;
+         const studentName = registrationDetails.student.name;
+         const eventName = registrationDetails.event.name;
+         const paymentMethod = registrationDetails.coTransaction.method;
+         const paymentStatus = registrationDetails.coTransaction.status;
+
+         const resend = new ResendAPI(process.env.AUTH_RESEND_KEY);
+         await resend.emails.send({
+            from: "St. Germain Alumni Association <noreply@registration.stgermainalumni.com>",
+            to: [studentEmail],
+            subject: `Payment Confirmed - ${eventName} Registration`,
+            html: htmlTemplate,
+            text: `Dear ${studentName},\n\nYour payment for ${eventName} has been successfully confirmed via ${paymentMethod.toUpperCase()}.\n\nPayment Status: ${paymentStatus === "paid" ? "Confirmed" : paymentStatus === "exception" ? "Exception Approved" : "Pending"}\n\nPlease bring a valid ID proof and this confirmation email to the event venue.\n\nBest regards,\nSt. Germain Alumni Association`,
+         });
+
+         return {
+            success: true,
+            coTransactionId: args.coTransactionId,
+            message: "Payment confirmation email sent successfully",
+         };
+      } catch (error) {
+         console.error("Payment confirmation email failed:", error);
+         return {
+            success: false,
+            coTransactionId: args.coTransactionId,
+            message:
+               error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred",
+         };
+      }
+   },
+});

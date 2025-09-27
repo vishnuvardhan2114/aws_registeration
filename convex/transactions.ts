@@ -1,7 +1,7 @@
 // convex/transactions.ts
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { generatePaymentReceipt } from "./utils/templates/paymentReceipt";
+import { generatePaymentReceipt, generatePaymentConfirmationEmail } from "./utils/templates/paymentReceipt";
 // Get a single transaction by ID
 export const getTransaction = query({
   args: { transactionId: v.id("transactions") },
@@ -106,5 +106,16 @@ export const getPaymentReceipt = query({
   handler: async (ctx, args) => {
     const htmlReceiptLayout = await generatePaymentReceipt(ctx, args.transactionId);
     return htmlReceiptLayout;
+  },
+});
+
+export const getPaymentConfirmationEmail = query({
+  args: {
+    coTransactionId: v.id("coTransactions"),
+  },
+  returns: v.union(v.string(), v.null()),
+  handler: async (ctx, args) => {
+    const htmlEmailLayout = await generatePaymentConfirmationEmail(ctx, args.coTransactionId);
+    return htmlEmailLayout;
   },
 });

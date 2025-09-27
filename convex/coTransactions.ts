@@ -73,6 +73,9 @@ export const createCoTransactionAndUpdateToken = mutation({
       v.union(v.literal("pending"), v.literal("paid"), v.literal("exception"))
     ),
   },
+  returns: v.object({
+    coTransactionId: v.id("coTransactions"),
+  }),
   handler: async (ctx, args) => {
     // 1. Fetch the token using the index
     const token = await ctx.db

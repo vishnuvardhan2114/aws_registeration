@@ -328,6 +328,88 @@ export const getRegistrationDetailsByTokenId = query({
    },
 });
 
+// Get comprehensive registration details by coTransaction ID
+export const getRegistrationDetailsByCoTransactionId = query({
+   args: {
+      coTransactionId: v.id("coTransactions"),
+   },
+   returns: v.union(
+      v.object({
+         // Token details
+         token: v.object({
+            _id: v.id("tokens"),
+            _creationTime: v.number(),
+            transactionId: v.optional(v.id("transactions")),
+            coTransactions: v.optional(v.id("coTransactions")),
+            eventId: v.id("events"),
+            studentId: v.id("students"),
+            isUsed: v.boolean(),
+            uniqueCode: v.optional(v.string()),
+         }),
+         // CoTransaction details
+         coTransaction: v.object({
+            _id: v.id("coTransactions"),
+            _creationTime: v.number(),
+            amount: v.number(),
+            currency: v.string(),
+            status: v.union(v.literal("paid"), v.literal("pending"), v.literal("exception")),
+            method: v.union(v.literal("cash"), v.literal("upi")),
+            storageId: v.optional(v.id("_storage")),
+         }),
+         // Event details
+         event: v.object({
+            _id: v.id("events"),
+            _creationTime: v.number(),
+            name: v.string(),
+            isFoodIncluded: v.boolean(),
+            amount: v.number(),
+            EndDate: v.string(),
+            StartDate: v.string(),
+         }),
+         // Student details
+         student: v.object({
+            _id: v.id("students"),
+            _creationTime: v.number(),
+            name: v.string(),
+            email: v.string(),
+            phoneNumber: v.string(),
+            dateOfBirth: v.string(),
+            imageStorageId: v.optional(v.id("_storage")),
+            batchYear: v.number(),
+         }),
+      }),
+      v.null()
+   ),
+   handler: async (ctx, args) => {
+      // Get coTransaction details
+      const coTransaction = await ctx.db.get(args.coTransactionId);
+      if (!coTransaction) return null;
+
+      // Find token that references this coTransaction
+      const token = await ctx.db
+         .query("tokens")
+         .filter((q) => q.eq(q.field("coTransactions"), args.coTransactionId))
+         .unique();
+
+      if (!token) return null;
+
+      // Get event details
+      const event = await ctx.db.get(token.eventId);
+      if (!event) return null;
+
+      // Get student details
+      const student = await ctx.db.get(token.studentId);
+      if (!student) return null;
+
+      return {
+         token,
+         coTransaction,
+         event,
+         student,
+      };
+   },
+});
+
 // Get token details by unique code for scanner validation
 export const getTokenByUniqueCode = query({
    args: { uniqueCode: v.string() },

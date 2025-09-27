@@ -356,7 +356,7 @@ export async function generatePaymentConfirmationEmail(
                   <img src="${studentPhotoUrl}" alt="${studentName}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #e5e5e5;"/>
                 </div>
               ` : ''}
-              <h3 style="margin:0 0 6px; font-size:12px; font-weight:bold; color:#000;">Student Details</h3>
+              <h3 style="margin:0 0 6px; font-size:12px; font-weight:bold; color:#000;">User Details</h3>
               <p style="margin:0; font-size:15px; font-weight:bold; color:#000;">${studentName}</p>
               <p style="margin:4px 0 0; font-size:12px; color:#666;">Age: ${studentAge} years</p>
               <p style="margin:4px 0 0; font-size:12px; color:#666;">Batch: ${batchYear}</p>

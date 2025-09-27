@@ -366,10 +366,6 @@ function generateRegistrationConfirmationTemplate({
                )}</span>
             </div>
             <div class="detail-row">
-               <span class="detail-label">Food Included:</span>
-               <span class="detail-value">${isFoodIncluded ? "Yes" : "No"}</span>
-            </div>
-            <div class="detail-row">
                <span class="detail-label">Registration Date:</span>
                <span class="detail-value">${registrationDate.toLocaleDateString("en-IN")}</span>
             </div>

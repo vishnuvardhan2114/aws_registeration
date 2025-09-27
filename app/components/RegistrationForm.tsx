@@ -451,7 +451,6 @@ export default function RegistrationForm({
                   Processing...
                 </div>
               ) : (
-                // 'Proceed to Payment' change it to
                 'Register For Event'
               )}
             </Button>

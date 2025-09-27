@@ -8,8 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { Id } from '@/convex/_generated/dataModel';
 import { CreditCard, Eye, Filter, Loader2, Search } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PaymentModal } from './PaymentModal';
+import { ReceiptPreviewModal } from './ReceiptPreviewModal';
+import { useDebounce } from '../hooks/useDebounce';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 
 // Types
@@ -23,6 +27,7 @@ export interface RegisteredUser {
   batchYear: number;
   registrationDate: number;
   dateOfBirth: string;
+  paymentMethod?: string;
 }
 
 interface RegisteredUsersTableProps {
@@ -30,6 +35,9 @@ interface RegisteredUsersTableProps {
   loadMore: (numberItems: number) => void;
   status: "LoadingFirstPage" | "CanLoadMore" | "LoadingMore" | "Exhausted";
   eventId: Id<'events'>
+  setSearchValue: (value: string) => void;
+  statusFilter: 'all' | 'paid' | 'pending' | 'exception';
+  setStatusFilter: (value: 'all' | 'paid' | 'pending' | 'exception') => void;
 }
 
 export interface PaymentData {
@@ -42,17 +50,43 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
   users,
   loadMore,
   status,
-  eventId
+  eventId,
+  setSearchValue,
+  statusFilter,
+  setStatusFilter
 }) => {
   const [selectedUser, setSelectedUser] = useState<RegisteredUser | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [selectedReceiptStorageId, setSelectedReceiptStorageId] = useState<Id<"_storage"> | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Get receipt URL when storage ID is selected
+  const receiptUrl = useQuery(
+    api.events.getReceiptUrl,
+    selectedReceiptStorageId ? { storageId: selectedReceiptStorageId } : "skip"
+  );
+
+  useEffect(() => {
+    setSearchValue(debouncedSearchTerm);
+  }, [debouncedSearchTerm, setSearchValue])
 
   const handlePaymentClick = (user: RegisteredUser) => {
     setSelectedUser(user);
     setIsPaymentModalOpen(true);
   };
+
+  const handleReceiptClick = (user: RegisteredUser) => {
+    if (user.receipt) {
+      setSelectedReceiptStorageId(user.receipt as Id<"_storage">);
+      setSelectedUserName(user.name);
+      setIsReceiptModalOpen(true);
+    }
+  };
+
+
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -108,10 +142,10 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search by name, contact, or batch year..."
+                placeholder="Search by name or phone number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 w-[50%] h-11"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -141,6 +175,7 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                   <TableHead>Batch Year</TableHead>
                   <TableHead>Registration Date</TableHead>
                   <TableHead>Payment Status</TableHead>
+                  <TableHead>Payment Method</TableHead>
                   <TableHead>Receipt</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -178,9 +213,19 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                             {user.paymentStatus.charAt(0).toUpperCase() + user.paymentStatus.slice(1)}
                           </Badge>
                         </TableCell>
+                        <TableCell className='text-center'>
+                          <Badge>
+                            {user.paymentMethod?.charAt(0).toUpperCase() + user.paymentMethod?.slice(1)}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           {user.receipt ? (
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleReceiptClick(user)}
+                              className="hover:bg-blue-50 hover:text-blue-600"
+                            >
                               <Eye className="h-4 w-4" />
                             </Button>
                           ) : (
@@ -188,7 +233,7 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          {user.paymentStatus !== 'paid' && (
+                          {user.paymentStatus !== 'paid' ? (
                             <Button
                               size="sm"
                               onClick={() => handlePaymentClick(user)}
@@ -196,6 +241,8 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                               <CreditCard className="h-4 w-4 mr-2" />
                               Make Payment
                             </Button>
+                          ) : (
+                            <Button variant="ghost" size="sm" className='bg-green-600 hover:text-white text-white hover:bg-green-700' disabled={true}>Paid</Button>
                           )}
                         </TableCell>
                       </TableRow>
@@ -234,6 +281,18 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
           eventId={eventId}
         />
       )}
+
+      {/* Receipt Preview Modal */}
+      <ReceiptPreviewModal
+        isOpen={isReceiptModalOpen}
+        onClose={() => {
+          setIsReceiptModalOpen(false);
+          setSelectedReceiptStorageId(null);
+          setSelectedUserName('');
+        }}
+        receiptUrl={receiptUrl || undefined}
+        fileName={selectedUserName}
+      />
     </div>
   );
 };

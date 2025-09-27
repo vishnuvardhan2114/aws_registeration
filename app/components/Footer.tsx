@@ -2,9 +2,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function Footer() {
   const pathname = usePathname()
+  const [currentYear, setCurrentYear] = useState<number>(2024)
+  
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear())
+  }, [])
+  
   if (pathname.startsWith("/admin")) return null
 
   return (
@@ -24,7 +31,7 @@ export default function Footer() {
               <h3 className="text-lg font-semibold">OBA St Germain institute</h3>
             </div>
             <p className="text-gray-300 text-sm">
-              contact: <input type="email" value="info@stgermainalumni.com" readOnly={true} />
+              contact: <span className="text-blue-300">info@stgermainalumni.com</span>
             </p>
           </div>
 
@@ -87,7 +94,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 mt-8 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © {new Date().getFullYear()} SGA Registration. All rights reserved.
+              © {currentYear} SGA Registration. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link

@@ -150,17 +150,17 @@ const ManageEventPage = () => {
   }
 
   return (
-    <div className="space-y-8 md:p-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 md:p-6">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Manage Events</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Manage Events</h1>
+          <p className="text-sm md:text-base text-gray-600">
             Create and manage your registration events
           </p>
         </div>
         <Button 
           onClick={handleAddEvent} 
-          className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white shadow-sm"
+          className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white shadow-sm w-full md:w-auto"
         >
           <Plus className="h-4 w-4" />
           Add New Event
@@ -193,12 +193,12 @@ const ManageEventPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-hidden">
-              <Table>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[800px]">
                 <TableHeader className="bg-gray-50">
                   <TableRow className="border-b border-gray-200">
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900"
+                      className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900 min-w-[200px]"
                       onClick={() => handleSort('name')}
                     >
                       <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ const ManageEventPage = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900"
+                      className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900 min-w-[180px]"
                       onClick={() => handleSort('StartDate')}
                     >
                       <div className="flex items-center gap-2">
@@ -216,7 +216,7 @@ const ManageEventPage = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900"
+                      className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900 min-w-[120px]"
                       onClick={() => handleSort('amount')}
                     >
                       <div className="flex items-center gap-2">
@@ -224,10 +224,10 @@ const ManageEventPage = () => {
                         <ArrowUpDown className="h-4 w-4" />
                       </div>
                     </TableHead>
-                    <TableHead className="font-semibold text-gray-900">Status</TableHead>
-                    <TableHead className="font-semibold text-gray-900">Features</TableHead>
+                    <TableHead className="font-semibold text-gray-900 min-w-[100px]">Status</TableHead>
+                    <TableHead className="font-semibold text-gray-900 min-w-[120px]">Features</TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900"
+                      className="cursor-pointer hover:bg-gray-100 transition-colors font-semibold text-gray-900 min-w-[100px]"
                       onClick={() => handleSort('_creationTime')}
                     >
                       <div className="flex items-center gap-2">
@@ -235,7 +235,7 @@ const ManageEventPage = () => {
                         <ArrowUpDown className="h-4 w-4" />
                       </div>
                     </TableHead>
-                    <TableHead className="text-right font-semibold text-gray-900">Actions</TableHead>
+                    <TableHead className="text-right font-semibold text-gray-900 min-w-[120px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -245,34 +245,36 @@ const ManageEventPage = () => {
                       className="cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-100"
                       onClick={() => handleViewEvent(event._id)}
                     >
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium min-w-[200px]">
                         <div className="space-y-1">
-                          <div className="font-semibold">{event.name}</div>
+                          <div className="font-semibold truncate" title={event.name}>{event.name}</div>
                           <div className="text-sm text-muted-foreground">
                             ID: {event._id.slice(-8)}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="min-w-[180px]">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-sm">
-                            <Clock className="h-4 w-4" />
-                            {formatDateTime(event.StartDate)}
+                            <Clock className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate" title={formatDateTime(event.StartDate)}>
+                              {formatDateTime(event.StartDate)}
+                            </span>
                           </div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-sm text-muted-foreground truncate" title={formatDateTime(event.EndDate)}>
                             to {formatDateTime(event.EndDate)}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="min-w-[120px]">
                         <div className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4 text-green-600" />
+                          <DollarSign className="h-4 w-4 text-green-600 flex-shrink-0" />
                           <span className="font-semibold">
                             {formatCurrency(event.amount)}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="min-w-[100px]">
                         <Badge 
                           variant={
                             isEventActive(event.StartDate, event.EndDate) 
@@ -281,6 +283,7 @@ const ManageEventPage = () => {
                               ? "secondary" 
                               : "outline"
                           }
+                          className="whitespace-nowrap"
                         >
                           {isEventActive(event.StartDate, event.EndDate) 
                             ? "Active" 
@@ -290,18 +293,18 @@ const ManageEventPage = () => {
                           }
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="min-w-[120px]">
                         {event.isFoodIncluded && (
                           <div className="flex items-center gap-2 text-sm">
-                            <Utensils className="h-4 w-4 text-orange-600" />
-                            <span className="text-orange-600">Food Included</span>
+                            <Utensils className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                            <span className="text-orange-600 whitespace-nowrap">Food Included</span>
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-muted-foreground min-w-[100px]">
                         {new Date(event._creationTime).toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right min-w-[120px]">
                         <div className="flex items-center justify-end gap-2">
                           <Button
                             variant="ghost"

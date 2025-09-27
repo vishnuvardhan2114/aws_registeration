@@ -175,12 +175,12 @@ const EventDialog: React.FC<EventDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-lg md:text-xl">
             {event ? 'Edit Event' : 'Create New Event'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             {event 
               ? 'Update the event details below.' 
               : 'Fill in the details to create a new event.'
@@ -188,15 +188,15 @@ const EventDialog: React.FC<EventDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Event Name</Label>
+            <Label htmlFor="name" className="text-sm font-medium">Event Name</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="Enter event name"
-              className={errors.name ? 'border-red-500' : ''}
+              className={`text-sm ${errors.name ? 'border-red-500' : ''}`}
             />
             {errors.name && (
               <p className="text-sm text-red-500">{errors.name}</p>
@@ -204,19 +204,21 @@ const EventDialog: React.FC<EventDialogProps> = ({
           </div>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="StartDate">Start Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`w-full justify-start text-left font-normal ${
+                      className={`w-full justify-start text-left font-normal text-sm ${
                         !formData.StartDate && "text-muted-foreground"
                       } ${errors.StartDate ? 'border-red-500' : ''}`}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.StartDate ? format(formData.StartDate, "PPP") : "Pick a date"}
+                      <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">
+                        {formData.StartDate ? format(formData.StartDate, "MMM dd, yyyy") : "Pick a date"}
+                      </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -239,12 +241,14 @@ const EventDialog: React.FC<EventDialogProps> = ({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`w-full justify-start text-left font-normal ${
+                      className={`w-full justify-start text-left font-normal text-sm ${
                         !formData.EndDate && "text-muted-foreground"
                       } ${errors.EndDate ? 'border-red-500' : ''}`}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.EndDate ? format(formData.EndDate, "PPP") : "Pick a date"}
+                      <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">
+                        {formData.EndDate ? format(formData.EndDate, "MMM dd, yyyy") : "Pick a date"}
+                      </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -262,7 +266,7 @@ const EventDialog: React.FC<EventDialogProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="StartTime" className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
@@ -300,14 +304,14 @@ const EventDialog: React.FC<EventDialogProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Event Amount (₹)</Label>
+            <Label htmlFor="amount" className="text-sm font-medium">Event Amount (₹)</Label>
             <Input
               id="amount"
-              type="text"
+              type="number"
               value={formData.amount}
               onChange={(e) => handleInputChange('amount', parseFloat(e.target.value) || 0)}
               placeholder="0.00"
-              className={errors.amount ? 'border-red-500' : ''}
+              className={`text-sm ${errors.amount ? 'border-red-500' : ''}`}
             />
             {errors.amount && (
               <p className="text-sm text-red-500">{errors.amount}</p>
@@ -325,11 +329,19 @@ const EventDialog: React.FC<EventDialogProps> = ({
             </Label>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button 
+              type="submit"
+              className="w-full sm:w-auto"
+            >
               {event ? 'Update Event' : 'Create Event'}
             </Button>
           </DialogFooter>

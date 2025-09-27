@@ -9,18 +9,23 @@ import { Id } from '@/convex/_generated/dataModel';
 import { usePaginatedQuery, useQuery } from 'convex/react';
 import { ArrowLeft, Calendar, Clock, IndianRupee, Utensils } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 const EventDetailPage = () => {
   const params = useParams()
   const router = useRouter()
   const eventId = params.id as Id<"events">
-
+  const [searchValue, setSearchValue] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending' | 'exception'>('all')
   const event = useQuery(api.events.getEvent, { eventId })
+  
 
   const { results, loadMore, status, isLoading } = usePaginatedQuery(
     api.events.getPaginatedEventRegistrations,
     {
-      eventId: eventId
+      eventId: eventId,
+      searchName: searchValue || undefined,
+      statusFilter: statusFilter,
     },
     { initialNumItems: 10 }
   );
@@ -60,7 +65,7 @@ const EventDetailPage = () => {
 
 
 
-  if (isLoading && status === "LoadingFirstPage") {
+  if (isLoading && status === "LoadingFirstPage" && searchValue === undefined) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -193,6 +198,9 @@ const EventDetailPage = () => {
           loadMore={loadMore}
           status={status}
           eventId={eventId}
+          setSearchValue={setSearchValue}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
         />
       </div>
 

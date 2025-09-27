@@ -17,7 +17,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSubmit, isLoading = f
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    flow: 'signUp'
+    flow: 'signIn'
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

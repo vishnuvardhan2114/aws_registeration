@@ -343,7 +343,9 @@ export const getPaginatedEventRegistrations = query({
       pageTokens.map((token) => ctx.db.get(token.studentId))
     );
     const coTransactions = await Promise.all(
-      pageTokens.map((token) => ctx.db.get(token.coTransactions!))
+      pageTokens.map((token) => 
+        token.coTransactions ? ctx.db.get(token.coTransactions) : null
+      )
     );
 
     // 7. Format the result
@@ -476,7 +478,9 @@ export const getAllEventRegistrationsForExport = query({
       filteredTokens.map((token) => ctx.db.get(token.studentId))
     );
     const coTransactions = await Promise.all(
-      filteredTokens.map((token) => ctx.db.get(token.coTransactions!))
+      filteredTokens.map((token) => 
+        token.coTransactions ? ctx.db.get(token.coTransactions) : null
+      )
     );
 
     // 6. Format the result and calculate summary

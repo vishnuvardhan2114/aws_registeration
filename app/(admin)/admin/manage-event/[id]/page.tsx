@@ -3,7 +3,8 @@
 import { RegisteredUsersTable } from '@/app/components/RegisteredUsersTable';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Card, CardContent } from '@/app/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
 import { usePaginatedQuery, useQuery } from 'convex/react';
@@ -18,7 +19,7 @@ const EventDetailPage = () => {
   const [searchValue, setSearchValue] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending' | 'exception'>('all')
   const event = useQuery(api.events.getEvent, { eventId })
-  
+
 
   const { results, loadMore, status, isLoading } = usePaginatedQuery(
     api.events.getPaginatedEventRegistrations,
@@ -148,48 +149,50 @@ const EventDetailPage = () => {
       </div>
 
       {/* Event Details */}
-      <Card className="shadow-sm border-0 bg-white">
-        <CardHeader className="border-b border-gray-100">
-          <CardTitle className="flex items-center gap-2 text-gray-900">
-            <Calendar className="h-5 w-5" />
-            Event Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent >
-          <div className="grid gap-4 md:grid-cols-2 pt-2">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Start Date</span>
-              </div>
-              <p className="text-sm text-muted-foreground">{formatDateTime(event.StartDate)}</p>
+      <Accordion type="single" collapsible className="w-full mt-4">
+        <AccordionItem value="event-details" className="border border-gray-200 rounded-lg bg-white shadow-sm">
+          <AccordionTrigger className="px-6 py-4 hover:no-underline">
+            <div className="flex items-center gap-2 text-gray-900">
+              <Calendar className="h-5 w-5" />
+              <span className="font-semibold">Event Details</span>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">End Date</span>
+          </AccordionTrigger>
+          <AccordionContent className="px-6 pb-4">
+            <div className="grid gap-4 md:grid-cols-2 pt-2">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Start Date</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{formatDateTime(event.StartDate)}</p>
               </div>
-              <p className="text-sm text-muted-foreground">{formatDateTime(event.EndDate)}</p>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Registration Fee</span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">End Date</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{formatDateTime(event.EndDate)}</p>
               </div>
-              <p className="text-sm text-muted-foreground">{formatCurrency(event.amount)}</p>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Utensils className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Food Included</span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Registration Fee</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{formatCurrency(event.amount)}</p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {event.isFoodIncluded ? 'Yes' : 'No'}
-              </p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Utensils className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Food Included</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {event.isFoodIncluded ? 'Yes' : 'No'}
+                </p>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       {/* Registered Users Table */}
       <div className="mt-8">

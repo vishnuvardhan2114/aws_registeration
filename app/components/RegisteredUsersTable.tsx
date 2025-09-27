@@ -233,20 +233,20 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
-              Registered Users ({users.length})
+              <span className="truncate">Registered Users ({users.length})</span>
             </CardTitle>
             <Button
               onClick={handleExportCSV}
               variant="outline"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
               disabled={!allUsersForExport}
             >
               <Download className="h-4 w-4" />
-              Export CSV
+              <span>Export CSV</span>
             </Button>
           </div>
         </CardHeader>
@@ -386,7 +386,7 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
 
           {/* Load More Section */}
           <div className="flex justify-center mt-6">
-            {status === "LoadingMore" || status === "LoadingFirstPage" ? (
+            {status === "LoadingFirstPage" ? (
               <Button disabled className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading...

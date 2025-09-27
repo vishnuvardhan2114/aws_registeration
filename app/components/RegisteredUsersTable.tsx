@@ -191,7 +191,10 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
   };
 
   const downloadCSV = (csvContent: string, filename: string) => {
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Add UTF-8 BOM to ensure proper encoding
+    const BOM = '\uFEFF';
+    const csvWithBOM = BOM + csvContent;
+    const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);

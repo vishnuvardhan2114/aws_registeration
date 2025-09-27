@@ -564,3 +564,19 @@ export const getAllTransactionsWithDetails = query({
       return results;
    },
 });
+
+export const simpleTokenById = query({
+   args: { tokenId: v.id("tokens") },
+   returns: v.union(
+      v.object({
+         _id: v.id("tokens"),
+         _creationTime: v.number(),
+         transactionId: v.optional(v.id("transactions")),
+         coTransactionsId: v.optional(v.id("coTransactions")),
+      }),
+      v.null()
+   ),
+   handler: async (ctx, args) => {
+      return await ctx.db.get(args.tokenId);
+   },
+});

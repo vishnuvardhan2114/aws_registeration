@@ -54,9 +54,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       }
 
       // Check file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp', 'image/tiff', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!allowedTypes.includes(file.type)) {
-        throw new Error("Only JPEG and PNG images are allowed");
+        throw new Error("Only JPEG, PNG, GIF, WebP, SVG, BMP, TIFF, PDF, DOC, DOCX images are allowed");
       }
 
       const postUrl = await generateUploadStorageUrl();

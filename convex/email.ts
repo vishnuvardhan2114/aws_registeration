@@ -80,8 +80,6 @@ export const sendReceiptEmail = action({
 
 export const sendRegistrationConfirmationEmail = action({
    args: {
-      studentId: v.id("students"),
-      eventId: v.id("events"),
       tokenId: v.id("tokens"),
    },
    returns: v.object({
@@ -90,9 +88,21 @@ export const sendRegistrationConfirmationEmail = action({
    }),
    handler: async (ctx, args) => {
       try {
+         // Get token details for unique code
+         const token = await ctx.runQuery(api.tokens.simpleTokenById, {
+            tokenId: args.tokenId,
+         });
+
+         if (!token) {
+            return {
+               success: false,
+               message: "Token not found",
+            };
+         }
+
          // Get student details
-         const student = await ctx.runQuery(api.students.getStudentById, { 
-            studentId: args.studentId 
+         const student = await ctx.runQuery(api.students.getStudentById, {
+            studentId: token.studentId,
          });
 
          if (!student) {
@@ -103,26 +113,14 @@ export const sendRegistrationConfirmationEmail = action({
          }
 
          // Get event details
-         const event = await ctx.runQuery(api.events.getEvent, { 
-            eventId: args.eventId 
+         const event = await ctx.runQuery(api.events.getEvent, {
+            eventId: token.eventId,
          });
 
          if (!event) {
             return {
                success: false,
                message: "Event not found",
-            };
-         }
-
-         // Get token details for unique code
-         const token = await ctx.runQuery(api.tokens.getToken, { 
-            tokenId: args.tokenId 
-         });
-
-         if (!token) {
-            return {
-               success: false,
-               message: "Token not found",
             };
          }
 
@@ -134,7 +132,6 @@ export const sendRegistrationConfirmationEmail = action({
             eventEndDate: event.EndDate,
             eventAmount: event.amount,
             isFoodIncluded: event.isFoodIncluded,
-            uniqueCode: token.uniqueCode || args.tokenId,
             registrationDate: new Date(token._creationTime),
          });
 
@@ -144,7 +141,7 @@ export const sendRegistrationConfirmationEmail = action({
             to: [student.email],
             subject: `Registration Confirmed - ${event.name}`,
             html: htmlTemplate,
-            text: `Dear ${student.name},\n\nThank you for registering for ${event.name}. Your registration has been confirmed. Please complete your payment of ₹${event.amount} at the venue using UPI or cash.\n\nEvent Details:\n- Event: ${event.name}\n- Date: ${new Date(event.StartDate).toLocaleDateString()} - ${new Date(event.EndDate).toLocaleDateString()}\n- Amount: ₹${event.amount}\n- Registration ID: ${token.uniqueCode || args.tokenId}\n\nWe look forward to seeing you at the event!\n\nBest regards,\nSt. Germain Alumni Association`,
+            text: `Dear ${student.name},\n\nThank you for registering for ${event.name}. Your registration has been confirmed. Please complete your payment of ₹${event.amount} at the venue using UPI or cash.\n\nEvent Details:\n- Event: ${event.name}\n- Date: ${new Date(event.StartDate).toLocaleDateString()} - ${new Date(event.EndDate).toLocaleDateString()}\n- Amount: ₹${event.amount}\n\nWe look forward to seeing you at the event!\n\nBest regards,\nSt. Germain Alumni Association`,
          });
 
          return {
@@ -155,7 +152,10 @@ export const sendRegistrationConfirmationEmail = action({
          console.error("Registration confirmation email failed:", error);
          return {
             success: false,
-            message: error instanceof Error ? error.message : "Unknown error occurred",
+            message:
+               error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred",
          };
       }
    },
@@ -169,7 +169,6 @@ function generateRegistrationConfirmationTemplate({
    eventEndDate,
    eventAmount,
    isFoodIncluded,
-   uniqueCode,
    registrationDate,
 }: {
    studentName: string;
@@ -178,12 +177,11 @@ function generateRegistrationConfirmationTemplate({
    eventEndDate: string;
    eventAmount: number;
    isFoodIncluded: boolean;
-   uniqueCode: string;
    registrationDate: Date;
 }) {
    const startDate = new Date(eventStartDate);
    const endDate = new Date(eventEndDate);
-   const firstName = studentName.split(' ')[0];
+   const firstName = studentName.split(" ")[0];
 
    return `
 <!DOCTYPE html>
@@ -345,29 +343,35 @@ function generateRegistrationConfirmationTemplate({
             </div>
             <div class="detail-row">
                <span class="detail-label">Start Date:</span>
-               <span class="detail-value">${startDate.toLocaleDateString('en-IN', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-               })}</span>
+               <span class="detail-value">${startDate.toLocaleDateString(
+                  "en-IN",
+                  {
+                     weekday: "long",
+                     year: "numeric",
+                     month: "long",
+                     day: "numeric",
+                  }
+               )}</span>
             </div>
             <div class="detail-row">
                <span class="detail-label">End Date:</span>
-               <span class="detail-value">${endDate.toLocaleDateString('en-IN', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-               })}</span>
+               <span class="detail-value">${endDate.toLocaleDateString(
+                  "en-IN",
+                  {
+                     weekday: "long",
+                     year: "numeric",
+                     month: "long",
+                     day: "numeric",
+                  }
+               )}</span>
             </div>
             <div class="detail-row">
                <span class="detail-label">Food Included:</span>
-               <span class="detail-value">${isFoodIncluded ? 'Yes' : 'No'}</span>
+               <span class="detail-value">${isFoodIncluded ? "Yes" : "No"}</span>
             </div>
             <div class="detail-row">
                <span class="detail-label">Registration Date:</span>
-               <span class="detail-value">${registrationDate.toLocaleDateString('en-IN')}</span>
+               <span class="detail-value">${registrationDate.toLocaleDateString("en-IN")}</span>
             </div>
          </div>
          
@@ -381,9 +385,6 @@ function generateRegistrationConfirmationTemplate({
             </div>
          </div>
          
-         <div class="registration-id">
-            <strong>Registration ID:</strong> ${uniqueCode}
-         </div>
          
          <div class="contact-info">
             <p><strong>Important:</strong> Please bring a valid ID proof and this registration confirmation email to the event venue.</p>

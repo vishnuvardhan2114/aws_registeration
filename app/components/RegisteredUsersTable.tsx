@@ -1,30 +1,35 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { Input } from '@/app/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
+import { Id } from '@/convex/_generated/dataModel';
+import { CreditCard, Eye, Filter, Loader2, Search } from 'lucide-react';
+import React, { useState } from 'react';
 import { PaymentModal } from './PaymentModal';
-import { Eye, CreditCard, Search, Filter } from 'lucide-react';
+
 
 // Types
 export interface RegisteredUser {
-  id: string;
+  _id: Id<'tokens'>;
+  studentId: Id<'students'>,
   name: string;
   contact: string;
   paymentStatus: 'paid' | 'pending' | 'exception';
   receipt?: string;
-  batchYear: string;
-  registrationDate: string;
+  batchYear: number;
+  registrationDate: number;
   dateOfBirth: string;
 }
 
 interface RegisteredUsersTableProps {
   users: RegisteredUser[];
-  onPaymentUpdate: (userId: string, paymentData: PaymentData) => void;
+  loadMore: (numberItems: number) => void;
+  status: "LoadingFirstPage" | "CanLoadMore" | "LoadingMore" | "Exhausted";
+  eventId: Id<'events'>
 }
 
 export interface PaymentData {
@@ -35,7 +40,9 @@ export interface PaymentData {
 
 export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
   users,
-  onPaymentUpdate
+  loadMore,
+  status,
+  eventId
 }) => {
   const [selectedUser, setSelectedUser] = useState<RegisteredUser | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -45,14 +52,6 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
   const handlePaymentClick = (user: RegisteredUser) => {
     setSelectedUser(user);
     setIsPaymentModalOpen(true);
-  };
-
-  const handlePaymentSubmit = (paymentData: PaymentData) => {
-    if (selectedUser) {
-      onPaymentUpdate(selectedUser.id, paymentData);
-      setIsPaymentModalOpen(false);
-      setSelectedUser(null);
-    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -65,7 +64,7 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
     return variants[status as keyof typeof variants] || variants.pending;
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | number) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -78,16 +77,15 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
+
     return age;
   };
 
   const formatContact = (contact: string) => {
-    // Format phone number for display
     const cleaned = contact.replace(/\D/g, '');
     if (cleaned.length === 10) {
       return `${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
@@ -95,26 +93,13 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
     return contact;
   };
 
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => {
-      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.contact.includes(searchTerm) ||
-        user.batchYear.includes(searchTerm);
-
-      const matchesStatus = statusFilter === 'all' || user.paymentStatus === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [users, searchTerm, statusFilter]);
-
-
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            Registered Users ({filteredUsers.length} of {users.length})
+            Registered Users ({users.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -161,26 +146,25 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length === 0 ? (
+                {users.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                       No users found matching your criteria
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredUsers.map((user) => {
+                  users.map((user) => {
                     const statusConfig = getStatusBadge(user.paymentStatus);
-                    
+
                     return (
-                      <TableRow key={user.id}>
+                      <TableRow key={user._id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
-                            <div 
-                              className={`w-2 h-2 rounded-full ${
-                                calculateAge(user.dateOfBirth) >= 21 
-                                  ? 'bg-green-500' 
-                                  : 'bg-red-500'
-                              }`}
+                            <div
+                              className={`w-2 h-2 rounded-full ${calculateAge(user.dateOfBirth) >= 21
+                                ? 'bg-green-500'
+                                : 'bg-red-500'
+                                }`}
                             />
                             {user.name}
                           </div>
@@ -221,9 +205,22 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
               </TableBody>
             </Table>
           </div>
+
+          {/* Load More Section */}
+          <div className="flex justify-center mt-6">
+            {status === "LoadingMore" || status === "LoadingFirstPage" ? (
+              <Button disabled className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading...
+              </Button>
+            ) : status === "CanLoadMore" ? (
+              <Button onClick={() => loadMore(10)}>Load More</Button>
+            ) : status === "Exhausted" ? (
+              <p className="text-gray-500 text-sm">No more users to load</p>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
-
 
       {/* Payment Modal */}
       {selectedUser && (
@@ -234,7 +231,7 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
             setSelectedUser(null);
           }}
           user={selectedUser}
-          onSubmit={handlePaymentSubmit}
+          eventId={eventId}
         />
       )}
     </div>

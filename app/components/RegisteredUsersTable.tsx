@@ -208,11 +208,15 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                         <TableCell>{calculateAge(user.dateOfBirth)}</TableCell>
                         <TableCell>{user.batchYear}</TableCell>
                         <TableCell>{formatDate(user.registrationDate)}</TableCell>
-                        <TableCell>
-                          <Badge {...statusConfig}>
-                            {user.paymentStatus.charAt(0).toUpperCase() + user.paymentStatus.slice(1)}
-                          </Badge>
-                        </TableCell>
+                        {
+                          user.paymentStatus !== 'exception' && (
+                            <TableCell>
+                              <Badge {...statusConfig}>
+                                {user.paymentStatus.charAt(0).toUpperCase() + user.paymentStatus.slice(1)}
+                              </Badge>
+                            </TableCell>
+                          )
+                        }
                         <TableCell className='text-center'>
                           {user.paymentStatus === 'pending' ? (
                             <span className="text-gray-400 text-sm">-</span>
@@ -224,8 +228,8 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                         </TableCell>
                         <TableCell>
                           {user.receipt ? (
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => handleReceiptClick(user)}
                               className="hover:bg-blue-50 hover:text-blue-600"

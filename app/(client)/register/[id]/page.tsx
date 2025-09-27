@@ -405,7 +405,7 @@ const EventRegistrationPage = () => {
           const emailResult = await sendRegistrationConfirmationEmail({
             studentId: studentId,
             eventId: eventId,
-            tokenId: tokenResult,
+            tokenId: tokenResult.tokenId,
           });
 
           if (emailResult.success) {

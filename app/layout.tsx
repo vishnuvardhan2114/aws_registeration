@@ -13,8 +13,8 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "OBA St Germain institute",
-  description: "OBA St Germain institute",
+  title: "Registration - SGA 74th AGM",
+  description: "Registration - SGA 74th AGM",
 };
 
 export default function RootLayout({

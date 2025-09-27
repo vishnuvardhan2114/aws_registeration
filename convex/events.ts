@@ -372,6 +372,174 @@ export const getPaginatedEventRegistrations = query({
   },
 });
 
+// Get all registered users for CSV export (non-paginated)
+export const getAllEventRegistrationsForExport = query({
+  args: { 
+    eventId: v.id("events"),
+    searchName: v.optional(v.string()),
+    statusFilter: v.optional(v.union(
+      v.literal("all"),
+      v.literal("paid"),
+      v.literal("pending"),
+      v.literal("exception")
+    ))
+  },
+  returns: v.object({
+    users: v.array(v.object({
+      _id: v.id("tokens"),
+      studentId: v.optional(v.id("students")),
+      name: v.optional(v.string()),
+      contact: v.optional(v.string()),
+      paymentStatus: v.optional(v.union(
+        v.literal("paid"),
+        v.literal("pending"),
+        v.literal("exception")
+      )),
+      paymentMethod: v.optional(v.union(
+        v.literal("cash"),
+        v.literal("upi")
+      )),
+      paymentAmount: v.optional(v.number()),
+      receipt: v.optional(v.id("_storage")),
+      batchYear: v.optional(v.number()),
+      registrationDate: v.number(),
+      dateOfBirth: v.optional(v.string()),
+    })),
+    summary: v.object({
+      totalUpiAmount: v.number(),
+      totalCashAmount: v.number(),
+      totalAmount: v.number(),
+      paidUsers: v.number(),
+      pendingUsers: v.number(),
+      exceptionUsers: v.number(),
+    })
+  }),
+  handler: async (ctx, args) => {
+    // 1. If searching by name or phone number, get matching student IDs
+    let studentIds: Set<string> | undefined;
+    if (args.searchName) {
+      const searchTerm = args.searchName.toLowerCase();
+      const students = await ctx.db
+        .query("students")
+        .collect();
+      
+      const matchingStudents = students.filter(student => 
+        student.name.toLowerCase().includes(searchTerm) ||
+        student.phoneNumber.includes(searchTerm)
+      );
+      
+      studentIds = new Set(matchingStudents.map(student => student._id));
+    }
+
+    // 2. Get all tokens for this event
+    const allTokens = await ctx.db
+      .query("tokens")
+      .filter((q) => q.eq(q.field("eventId"), args.eventId))
+      .order("desc")
+      .collect();
+
+    // 3. Apply status filter if specified
+    let filteredTokens = allTokens;
+    if (args.statusFilter && args.statusFilter !== "all") {
+      // Get coTransactions for all tokens to filter by status
+      const coTransactionIds = allTokens
+        .map(token => token.coTransactions)
+        .filter((id): id is NonNullable<typeof id> => id !== undefined);
+      
+      const coTransactions = await Promise.all(
+        coTransactionIds.map(id => ctx.db.get(id))
+      );
+
+      // Create a map of coTransaction ID to status
+      const coTransactionStatusMap = new Map<string, string>();
+      coTransactions.forEach((coTx, index) => {
+        if (coTx) {
+          coTransactionStatusMap.set(coTransactionIds[index], coTx.status);
+        }
+      });
+
+      // Filter tokens by status
+      filteredTokens = allTokens.filter(token => {
+        if (!token.coTransactions) return false;
+        const status = coTransactionStatusMap.get(token.coTransactions);
+        return status === args.statusFilter;
+      });
+    }
+
+    // 4. Apply search filter if specified
+    if (studentIds) {
+      filteredTokens = filteredTokens.filter(token => studentIds!.has(token.studentId));
+    }
+
+    // 5. Fetch related data for all filtered tokens
+    const students = await Promise.all(
+      filteredTokens.map((token) => ctx.db.get(token.studentId))
+    );
+    const coTransactions = await Promise.all(
+      filteredTokens.map((token) => ctx.db.get(token.coTransactions!))
+    );
+
+    // 6. Format the result and calculate summary
+    const users = filteredTokens.map((token, i) => {
+      const student = students[i];
+      const coTransaction = coTransactions[i];
+      return {
+        _id: token._id,
+        studentId: student?._id,
+        name: student?.name,
+        contact: student?.phoneNumber,
+        paymentStatus: coTransaction?.status,
+        paymentMethod: coTransaction?.method,
+        paymentAmount: coTransaction?.amount,
+        receipt: coTransaction?.storageId,
+        batchYear: student?.batchYear,
+        registrationDate: token._creationTime,
+        dateOfBirth: student?.dateOfBirth,
+      };
+    });
+
+    // Calculate summary
+    let totalUpiAmount = 0;
+    let totalCashAmount = 0;
+    let paidUsers = 0;
+    let pendingUsers = 0;
+    let exceptionUsers = 0;
+
+    users.forEach(user => {
+      if (user.paymentStatus === 'paid' && user.paymentAmount) {
+        if (user.paymentMethod === 'upi') {
+          totalUpiAmount += user.paymentAmount;
+        } else if (user.paymentMethod === 'cash') {
+          totalCashAmount += user.paymentAmount;
+        }
+      }
+
+      switch (user.paymentStatus) {
+        case 'paid':
+          paidUsers++;
+          break;
+        case 'pending':
+          pendingUsers++;
+          break;
+        case 'exception':
+          exceptionUsers++;
+          break;
+      }
+    });
+
+    const summary = {
+      totalUpiAmount,
+      totalCashAmount,
+      totalAmount: totalUpiAmount + totalCashAmount,
+      paidUsers,
+      pendingUsers,
+      exceptionUsers,
+    };
+
+    return { users, summary };
+  },
+});
+
 // Get receipt URL by storage ID
 export const getReceiptUrl = query({
   args: { storageId: v.id("_storage") },

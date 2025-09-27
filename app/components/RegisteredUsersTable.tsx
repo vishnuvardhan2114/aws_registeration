@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Badge } from '@/app/components/ui/badge';
@@ -7,13 +8,14 @@ import { Input } from '@/app/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
 import { Id } from '@/convex/_generated/dataModel';
-import { CreditCard, Eye, Filter, Loader2, Search } from 'lucide-react';
+import { CreditCard, Download, Eye, Filter, Loader2, Search } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { PaymentModal } from './PaymentModal';
 import { ReceiptPreviewModal } from './ReceiptPreviewModal';
 import { useDebounce } from '../hooks/useDebounce';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import { toast } from 'sonner';
 
 
 // Types
@@ -28,6 +30,7 @@ export interface RegisteredUser {
   registrationDate: number;
   dateOfBirth: string;
   paymentMethod?: string;
+  paymentAmount?: number;
 }
 
 interface RegisteredUsersTableProps {
@@ -127,14 +130,122 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
     return contact;
   };
 
+  // CSV Export functionality
+  const convertToCSV = (data: { users: RegisteredUser[], summary: any }) => {
+    const formatCurrency = (amount: number) => {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR'
+      }).format(amount);
+    };
+
+    // Create summary section
+    const summarySection = [
+      ['PAYMENT SUMMARY'],
+      [''],
+      ['UPI Payments:', formatCurrency(data.summary.totalUpiAmount)],
+      ['Cash Payments:', formatCurrency(data.summary.totalCashAmount)],
+      ['Total Collected:', formatCurrency(data.summary.totalAmount)],
+      [''],
+      ['USER STATISTICS'],
+      [''],
+      ['Paid Users:', data.summary.paidUsers.toString()],
+      ['Pending Users:', data.summary.pendingUsers.toString()],
+      ['Exception Users:', data.summary.exceptionUsers.toString()],
+      [''],
+      ['USER DATA'],
+      ['']
+    ];
+
+    const headers = [
+      'Name',
+      'Contact',
+      'Age',
+      'Batch Year',
+      'Registration Date',
+      'Payment Status',
+      'Payment Method',
+      'Payment Amount',
+      'Date of Birth'
+    ];
+
+    const rows = data.users.map(user => [
+      user.name || '',
+      user.contact || '',
+      calculateAge(user.dateOfBirth || '').toString(),
+      user.batchYear?.toString() || '',
+      formatDate(user.registrationDate),
+      user.paymentStatus || '',
+      user.paymentMethod || '',
+      user.paymentAmount ? formatCurrency(user.paymentAmount) : '',
+      user.dateOfBirth || ''
+    ]);
+
+    const csvContent = [
+      ...summarySection.map(row => row.map(field => `"${field}"`).join(',')),
+      headers.join(','),
+      ...rows.map(row => row.map(field => `"${field}"`).join(','))
+    ].join('\n');
+
+    return csvContent;
+  };
+
+  const downloadCSV = (csvContent: string, filename: string) => {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Get all users data for export
+  const allUsersForExport = useQuery(
+    api.events.getAllEventRegistrationsForExport,
+    {
+      eventId,
+      searchName: debouncedSearchTerm || undefined,
+      statusFilter
+    }
+  );
+
+  const handleExportCSV = () => {
+    if (!allUsersForExport) {
+      toast.error('Loading data for export... Please try again in a moment.');
+      return;
+    }
+
+    const csvContent = convertToCSV(allUsersForExport);
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `registered-users-${timestamp}.csv`;
+
+    downloadCSV(csvContent, filename);
+    toast.success(`Exported ${allUsersForExport.users.length} users to ${filename}`);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Registered Users ({users.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Registered Users ({users.length})
+            </CardTitle>
+            <Button
+              onClick={handleExportCSV}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+              disabled={!allUsersForExport}
+            >
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {/* Search and Filter Bar */}
@@ -176,6 +287,7 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                   <TableHead>Registration Date</TableHead>
                   <TableHead>Payment Status</TableHead>
                   <TableHead>Payment Method</TableHead>
+                  <TableHead>Amount</TableHead>
                   <TableHead>Receipt</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -183,20 +295,19 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                       No users found matching your criteria
                     </TableCell>
                   </TableRow>
                 ) : (
                   users.map((user) => {
                     const statusConfig = getStatusBadge(user.paymentStatus);
-
                     return (
                       <TableRow key={user._id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <div
-                              className={`w-4 h-4 rounded-full ${calculateAge(user.dateOfBirth) >= 21
+                              className={`w-3 h-3 rounded-full ${calculateAge(user.dateOfBirth) >= 21
                                 ? 'bg-green-500'
                                 : 'bg-red-500'
                                 }`}
@@ -224,6 +335,15 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                             <Badge>
                               {user.paymentMethod?.charAt(0).toUpperCase() + user.paymentMethod?.slice(1)}
                             </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className='text-center'>
+                          {user.paymentStatus === 'paid' && user.paymentAmount ? (
+                            <span className="font-medium text-green-600">
+                              ₹{user.paymentAmount.toLocaleString('en-IN')}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-sm">-</span>
                           )}
                         </TableCell>
                         <TableCell>

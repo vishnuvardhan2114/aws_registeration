@@ -1,19 +1,22 @@
 // convex/events.ts
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
 // Get all events
 export const getAllEvents = query({
   args: {},
-  returns: v.array(v.object({
-    _id: v.id("events"),
-    _creationTime: v.number(),
-    name: v.string(),
-    isFoodIncluded: v.boolean(),
-    amount: v.float64(),
-    EndDate: v.string(),
-    StartDate: v.string(),
-  })),
+  returns: v.array(
+    v.object({
+      _id: v.id("events"),
+      _creationTime: v.number(),
+      name: v.string(),
+      isFoodIncluded: v.boolean(),
+      amount: v.float64(),
+      EndDate: v.string(),
+      StartDate: v.string(),
+    })
+  ),
   handler: async (ctx) => {
     return await ctx.db.query("events").order("desc").collect();
   },
@@ -85,15 +88,17 @@ export const deleteEvent = mutation({
 // Get active events (events that are currently active or upcoming)
 export const getActiveEvents = query({
   args: {},
-  returns: v.array(v.object({
-    _id: v.id("events"),
-    _creationTime: v.number(),
-    name: v.string(),
-    isFoodIncluded: v.boolean(),
-    amount: v.float64(),
-    EndDate: v.string(),
-    StartDate: v.string(),
-  })),
+  returns: v.array(
+    v.object({
+      _id: v.id("events"),
+      _creationTime: v.number(),
+      name: v.string(),
+      isFoodIncluded: v.boolean(),
+      amount: v.float64(),
+      EndDate: v.string(),
+      StartDate: v.string(),
+    })
+  ),
   handler: async (ctx) => {
     const now = new Date().toISOString();
     return await ctx.db
@@ -121,15 +126,18 @@ export const getEventStats = query({
       .collect();
 
     // Get all transactions for these tokens
-    const transactionIds = tokens.map(token => token.transactionId);
+    const transactionIds = tokens.map((token) => token.transactionId);
     const transactions = await Promise.all(
-      transactionIds.map(id => ctx.db.get(id))
+      transactionIds.map((id) => ctx.db.get(id))
     );
 
     // Filter out null transactions and calculate stats
-    const validTransactions = transactions.filter(t => t !== null);
-    const totalAmountCollected = validTransactions.reduce((sum, t) => sum + (t?.amount || 0), 0);
-    const foodCouponsUsed = tokens.filter(token => token.isUsed).length;
+    const validTransactions = transactions.filter((t) => t !== null);
+    const totalAmountCollected = validTransactions.reduce(
+      (sum, t) => sum + (t?.amount || 0),
+      0
+    );
+    const foodCouponsUsed = tokens.filter((token) => token.isUsed).length;
     const foodCouponsAvailable = tokens.length - foodCouponsUsed;
 
     return {
@@ -144,27 +152,29 @@ export const getEventStats = query({
 // Get all registered users for a specific event with their details
 export const getEventRegistrations = query({
   args: { eventId: v.id("events") },
-  returns: v.array(v.object({
-    _id: v.id("tokens"),
-    _creationTime: v.number(),
-    isUsed: v.boolean(),
-    uniqueCode: v.string(),
-    student: v.object({
-      _id: v.id("students"),
-      name: v.string(),
-      email: v.string(),
-      phoneNumber: v.string(),
-      batchYear: v.number(),
-      imageUrl: v.optional(v.string()),
-    }),
-    transaction: v.object({
-      _id: v.id("transactions"),
-      amount: v.number(),
-      status: v.string(),
-      method: v.string(),
-      created_at: v.string(),
-    }),
-  })),
+  returns: v.array(
+    v.object({
+      _id: v.id("tokens"),
+      _creationTime: v.number(),
+      isUsed: v.boolean(),
+      uniqueCode: v.string(),
+      student: v.object({
+        _id: v.id("students"),
+        name: v.string(),
+        email: v.string(),
+        phoneNumber: v.string(),
+        batchYear: v.number(),
+        imageUrl: v.optional(v.string()),
+      }),
+      transaction: v.object({
+        _id: v.id("transactions"),
+        amount: v.number(),
+        status: v.string(),
+        method: v.string(),
+        created_at: v.string(),
+      }),
+    })
+  ),
   handler: async (ctx, args) => {
     // Get all tokens for this event
     const tokens = await ctx.db
@@ -178,7 +188,7 @@ export const getEventRegistrations = query({
       tokens.map(async (token) => {
         const student = await ctx.db.get(token.studentId);
         const transaction = await ctx.db.get(token.transactionId);
-        
+
         if (!student || !transaction) {
           return null;
         }
@@ -215,6 +225,71 @@ export const getEventRegistrations = query({
     );
 
     // Filter out null registrations
-    return registrations.filter(reg => reg !== null);
+    return registrations.filter((reg) => reg !== null);
+  },
+});
+
+export const getPaginatedEventRegistrations = query({
+  args: {
+    eventId: v.id("events"),
+    searchName: v.optional(v.string()),
+    paginationOpts: paginationOptsValidator, // Use Convex's pagination validator
+  },
+  handler: async (ctx, args) => {
+    // 1. If searching by name, get matching student IDs
+    let studentIds: Set<string> | undefined;
+    if (args.searchName) {
+      const students = await ctx.db
+        .query("students")
+        .withSearchIndex("search_name", (q) =>
+          q.search("name", args.searchName!)
+        )
+        .collect();
+      studentIds = new Set(students.map((s) => s._id));
+    }
+
+    // 2. Query tokens by eventId, paginate
+    const tokensQuery = ctx.db
+      .query("tokens")
+      .withIndex("by_event_student", (q) => q.eq("eventId", args.eventId));
+
+    // 3. Paginate tokens
+    const page = await tokensQuery.paginate(args.paginationOpts);
+
+    // 4. Filter tokens with coTransactions and (if searching) matching studentId
+    const filteredTokens = page.page.filter(
+      (token) =>
+        token.coTransactions && (!studentIds || studentIds.has(token.studentId))
+    );
+
+    // 5. Fetch related students and coTransactions
+    const students = await Promise.all(
+      filteredTokens.map((token) => ctx.db.get(token.studentId))
+    );
+    const coTransactions = await Promise.all(
+      filteredTokens.map((token) => ctx.db.get(token.coTransactions!))
+    );
+
+    // 6. Format the result
+    const result = filteredTokens.map((token, i) => {
+      const student = students[i];
+      const coTransaction = coTransactions[i];
+      return {
+        _id: token._id,
+        studentId: student?._id,
+        name: student?.name,
+        contact: student?.phoneNumber,
+        paymentStatus: coTransaction?.status,
+        receipt: coTransaction?.storageId, // adjust as needed
+        batchYear: student?.batchYear,
+        registrationDate: token._creationTime, // adjust if you have a different field
+        dateOfBirth: student?.dateOfBirth,
+      };
+    });
+
+    return {
+      ...page,
+      page: result,
+    };
   },
 });

@@ -50,6 +50,7 @@ const EventRegistrationPage = () => {
   const createTransactions = useAction(api.payments.createTransaction);
   const createToken = useMutation(api.tokens.addToken);
   const sendReceiptEmail = useAction(api.email.sendReceiptEmail)
+  const sendRegistrationConfirmationEmail = useAction(api.email.sendRegistrationConfirmationEmail)
 
   const isLoading = event === undefined;
 
@@ -388,7 +389,7 @@ const EventRegistrationPage = () => {
       setRegistrationCompleted(true);
 
       //crate a token just for the manual transaction without payment
-      await addToken({
+      const tokenResult = await addToken({
         studentId: studentId,
         eventId: eventId,
         isUsed: false,
@@ -397,6 +398,27 @@ const EventRegistrationPage = () => {
         studentId: studentId,
         eventId: eventId,
       })
+
+      // Send registration confirmation email
+      if (tokenResult) {
+        try {
+          const emailResult = await sendRegistrationConfirmationEmail({
+            studentId: studentId,
+            eventId: eventId,
+            tokenId: tokenResult,
+          });
+
+          if (emailResult.success) {
+            console.log("Registration confirmation email sent successfully:", emailResult.message);
+          } else {
+            console.error("Registration confirmation email failed:", emailResult.message);
+            toast.error(`Registration successful but confirmation email failed: ${emailResult.message}`);
+          }
+        } catch (emailError) {
+          console.error("Registration confirmation email error:", emailError);
+          toast.error("Registration successful but confirmation email could not be sent. Please contact support.");
+        }
+      }
 
       // Save student data to local storage for auto-fill
       const studentDataForStorage = {

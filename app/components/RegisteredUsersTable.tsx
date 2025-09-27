@@ -139,13 +139,13 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
         <CardContent>
           {/* Search and Filter Bar */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
+            <div className="relative w-full sm:w-[50%]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search by name or phone number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-[50%] h-11"
+                className="pl-10 w-full h-11"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -214,9 +214,13 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                           </Badge>
                         </TableCell>
                         <TableCell className='text-center'>
-                          <Badge>
-                            {user.paymentMethod?.charAt(0).toUpperCase() + user.paymentMethod?.slice(1)}
-                          </Badge>
+                          {user.paymentStatus === 'pending' ? (
+                            <span className="text-gray-400 text-sm">-</span>
+                          ) : (
+                            <Badge>
+                              {user.paymentMethod?.charAt(0).toUpperCase() + user.paymentMethod?.slice(1)}
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           {user.receipt ? (

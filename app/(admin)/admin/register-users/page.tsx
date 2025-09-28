@@ -60,7 +60,8 @@ const formatDate = (dateString: string) => {
   }).format(new Date(dateString));
 };
 
-const formatPhoneNumber = (phone: string) => {
+const formatPhoneNumber = (phone: string | undefined) => {
+  if (!phone) return 'N/A';
   // Format phone number for Indian format
   const cleaned = phone.replace(/\D/g, '');
   if (cleaned.length === 10) {

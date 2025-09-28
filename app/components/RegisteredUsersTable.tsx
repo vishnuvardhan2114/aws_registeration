@@ -122,7 +122,8 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
     return age;
   };
 
-  const formatContact = (contact: string) => {
+  const formatContact = (contact: string | undefined) => {
+    if (!contact) return 'N/A';
     const cleaned = contact.replace(/\D/g, '');
     if (cleaned.length === 10) {
       return `${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
@@ -326,7 +327,7 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                           user.paymentStatus !== 'exception' && (
                             <TableCell>
                               <Badge {...statusConfig}>
-                                {user.paymentStatus.charAt(0).toUpperCase() + user.paymentStatus.slice(1)}
+                                {user.paymentStatus ? user.paymentStatus.charAt(0).toUpperCase() + user.paymentStatus.slice(1) : 'Unknown'}
                               </Badge>
                             </TableCell>
                           )
@@ -336,7 +337,7 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                             <span className="text-gray-400 text-sm">-</span>
                           ) : (
                             <Badge>
-                              {user.paymentMethod?.charAt(0).toUpperCase() + user.paymentMethod?.slice(1)}
+                              {user.paymentMethod ? user.paymentMethod.charAt(0).toUpperCase() + user.paymentMethod.slice(1) : 'Unknown'}
                             </Badge>
                           )}
                         </TableCell>

@@ -237,10 +237,6 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
       return;
     }
 
-    // Debug: Log the data being exported
-    console.log('Exporting data:', allUsersForExport);
-    console.log('Users count:', allUsersForExport.users?.length || 0);
-
     if (!allUsersForExport.users || allUsersForExport.users.length === 0) {
       toast.error('No data available for export.');
       return;

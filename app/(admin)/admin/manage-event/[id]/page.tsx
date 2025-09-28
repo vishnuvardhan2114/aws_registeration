@@ -19,6 +19,13 @@ const EventDetailPage = () => {
   const [searchValue, setSearchValue] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending' | 'exception'>('all')
   const event = useQuery(api.events.getEvent, { eventId })
+  
+  // Get event statistics for display
+  const eventStats = useQuery(api.events.getAllEventRegistrationsForExport, {
+    eventId: eventId,
+    searchName: undefined,
+    statusFilter: 'all'
+  })
 
 
   const { results, loadMore, status, isLoading } = usePaginatedQuery(
@@ -193,6 +200,166 @@ const EventDetailPage = () => {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+
+      {/* Payment Statistics */}
+      {eventStats ? (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Payment Statistics</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* UPI Amount */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">UPI Payments</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {formatCurrency(eventStats.summary.totalUpiAmount)}
+                    </p>
+                  </div>
+                  <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <IndianRupee className="h-4 w-4 text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cash Amount */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Cash Payments</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {formatCurrency(eventStats.summary.totalCashAmount)}
+                    </p>
+                  </div>
+                  <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <IndianRupee className="h-4 w-4 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Total Amount */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Collected</p>
+                    <p className="text-2xl font-bold text-purple-600">
+                      {formatCurrency(eventStats.summary.totalAmount)}
+                    </p>
+                  </div>
+                  <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <IndianRupee className="h-4 w-4 text-purple-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Total Registrations */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Registrations</p>
+                    <p className="text-2xl font-bold text-gray-600">
+                      {eventStats.users.length}
+                    </p>
+                  </div>
+                  <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Calendar className="h-4 w-4 text-gray-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* User Status Breakdown */}
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-4">User Status Breakdown</h3>
+            <div className="grid gap-4 md:grid-cols-3">
+              {/* Paid Users */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Paid Users</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {eventStats.summary.paidUsers}
+                      </p>
+                    </div>
+                    <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">
+                      Paid
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Pending Users */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Pending Users</p>
+                      <p className="text-2xl font-bold text-yellow-600">
+                        {eventStats.summary.pendingUsers}
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+                      Pending
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Exception Users */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Exception Users</p>
+                      <p className="text-2xl font-bold text-red-600">
+                        {eventStats.summary.exceptionUsers}
+                      </p>
+                    </div>
+                    <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">
+                      Exception
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Payment Statistics</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <div className="h-4 w-20 bg-muted animate-pulse rounded mb-2" />
+                  <div className="h-8 w-16 bg-muted animate-pulse rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-4">User Status Breakdown</h3>
+            <div className="grid gap-4 md:grid-cols-3">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-6">
+                    <div className="h-4 w-20 bg-muted animate-pulse rounded mb-2" />
+                    <div className="h-8 w-16 bg-muted animate-pulse rounded" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Registered Users Table */}
       <div className="mt-8">

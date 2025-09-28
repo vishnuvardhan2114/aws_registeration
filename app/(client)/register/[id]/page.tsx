@@ -376,7 +376,7 @@ const EventRegistrationPage = () => {
 
     const formatedData = {
       name: data.fullName,
-      email: data.email,
+      email: data.email || undefined,
       phoneNumber: data.phoneNumber,
       dateOfBirth: `${data.dateOfBirth.getFullYear()}-${String(data.dateOfBirth.getMonth() + 1).padStart(2, '0')}-${String(data.dateOfBirth.getDate()).padStart(2, '0')}`,
       imageStorageId: storageId,
@@ -414,14 +414,13 @@ const EventRegistrationPage = () => {
           }
         } catch (emailError) {
           console.error("Registration confirmation email error:", emailError);
-          toast.error("Registration successful but confirmation email could not be sent. Please contact support.");
         }
       }
 
       // Save student data to local storage for auto-fill
       const studentDataForStorage = {
         fullName: data.fullName,
-        email: data.email,
+        email: data?.email || undefined ,
         phoneNumber: data.phoneNumber,
         dateOfBirth: `${data.dateOfBirth.getFullYear()}-${String(data.dateOfBirth.getMonth() + 1).padStart(2, '0')}-${String(data.dateOfBirth.getDate()).padStart(2, '0')}`,
         batch: data.batch,

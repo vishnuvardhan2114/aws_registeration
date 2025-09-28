@@ -20,7 +20,7 @@ export const getStudent = query({
       _id: v.id("students"),
       _creationTime: v.number(),
       name: v.string(),
-      email: v.string(),
+      email: v.optional(v.string()),
       phoneNumber: v.string(),
       dateOfBirth: v.string(),
       imageStorageId: v.optional(v.id("_storage")),
@@ -55,7 +55,7 @@ export const getStudentById = query({
       _id: v.id("students"),
       _creationTime: v.number(),
       name: v.string(),
-      email: v.string(),
+      email: v.optional(v.string()),
       phoneNumber: v.string(),
       dateOfBirth: v.string(),
       imageStorageId: v.optional(v.id("_storage")),
@@ -86,7 +86,7 @@ export const getStudentById = query({
 export const addStudent = mutation({
   args: {
     name: v.string(),
-    email: v.string(),
+    email: v.optional(v.string()),
     phoneNumber: v.string(),
     dateOfBirth: v.string(),
     imageStorageId: v.optional(v.id("_storage")),
@@ -101,7 +101,7 @@ export const addStudent = mutation({
 export const addOrUpdateStudent = mutation({
   args: {
     name: v.string(),
-    email: v.string(),
+    email: v.optional(v.string()),
     phoneNumber: v.string(),
     dateOfBirth: v.string(),
     imageStorageId: v.optional(v.id("_storage")),
@@ -109,11 +109,14 @@ export const addOrUpdateStudent = mutation({
   },
   returns: v.id("students"),
   handler: async (ctx, args) => {
-    // Check for existing student by email
-    let existing = await ctx.db
-      .query("students")
-      .filter((q) => q.eq(q.field("email"), args.email))
-      .unique();
+    // Check for existing student by email (only if email is provided)
+    let existing = null;
+    if (args.email) {
+      existing = await ctx.db
+        .query("students")
+        .filter((q) => q.eq(q.field("email"), args.email))
+        .unique();
+    }
 
     // If not found by email, check by phone number
     if (!existing) {
@@ -159,7 +162,7 @@ export const getAllStudents = query({
       _id: v.id("students"),
       _creationTime: v.number(),
       name: v.string(),
-      email: v.string(),
+      email: v.optional(v.string()),
       phoneNumber: v.string(),
       dateOfBirth: v.string(),
       imageStorageId: v.optional(v.id("_storage")),

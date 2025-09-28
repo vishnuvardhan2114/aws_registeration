@@ -74,7 +74,7 @@ const EventDetailPage = () => {
 
   const filteredRegistrations = eventRegistrations?.filter(registration => {
     const matchesSearch = registration.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      registration.student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (registration.student.email && registration.student.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       registration.student.phoneNumber.includes(searchTerm)
 
     const matchesFilter = filterUsed === 'all' ||
@@ -373,7 +373,7 @@ const EventDetailPage = () => {
                             <div>
                               <div className="font-medium">{registration.student.name}</div>
                               <div className="text-sm text-muted-foreground">
-                                {registration.student.email}
+                                {registration.student.email || 'No email provided'}
                               </div>
                             </div>
                           </div>

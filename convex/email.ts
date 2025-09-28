@@ -51,6 +51,14 @@ export const sendReceiptEmail = action({
          // Get student email and name from database
          const studentEmail = registrationDetails.student.email;
 
+         if (!studentEmail) {
+            return {
+               success: false,
+               transactionId: args.transactionId,
+               message: "Student email not provided, cannot send receipt email",
+            };
+         }
+
          const resend = new ResendAPI(process.env.AUTH_RESEND_KEY);
          await resend.emails.send({
             from: "Event Registration <noreply@registration.stgermainalumni.com>",
@@ -135,6 +143,13 @@ export const sendRegistrationConfirmationEmail = action({
             isFoodIncluded: event.isFoodIncluded,
             registrationDate: new Date(token._creationTime),
          });
+
+         if (!student.email) {
+            return {
+               success: false,
+               message: "Student email not provided, cannot send registration confirmation email",
+            };
+         }
 
          const resend = new ResendAPI(process.env.AUTH_RESEND_KEY);
          await resend.emails.send({
@@ -443,6 +458,14 @@ export const sendPaymentConfirmationEmail = action({
          const eventName = registrationDetails.event.name;
          const paymentMethod = registrationDetails.coTransaction.method;
          const paymentStatus = registrationDetails.coTransaction.status;
+
+         if (!studentEmail) {
+            return {
+               success: false,
+               coTransactionId: args.coTransactionId,
+               message: "Student email not provided, cannot send payment confirmation email",
+            };
+         }
 
          const resend = new ResendAPI(process.env.AUTH_RESEND_KEY);
          await resend.emails.send({

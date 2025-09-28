@@ -100,7 +100,7 @@ const RegisterStudentsPage = () => {
     return students.filter(student => {
       const matchesSearch = 
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (student.email && student.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
         student.phoneNumber.includes(searchTerm) ||
         student.dateOfBirth.includes(searchTerm);
       
@@ -288,7 +288,7 @@ const RegisterStudentsPage = () => {
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
                           <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{student.email}</span>
+                          <span className="text-sm">{student.email || 'No email provided'}</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Phone className="h-4 w-4 text-muted-foreground" />

@@ -26,30 +26,14 @@ export const registrationSchema = z.object({
    batch: z.number(),
    email: z
       .string()
-      .optional()
-      .refine(
-         (email) => {
-            if (!email || email.trim() === "") return true; // Allow empty or undefined
-            return z.string().email().safeParse(email).success;
-         },
-         {
-            message: "Please enter a valid email address",
-         }
-      )
-      .refine(
-         (email) => {
-            if (!email || email.trim() === "") return true; // Allow empty or undefined
-            return email.length <= 255;
-         },
-         {
-            message: "Email must be less than 255 characters",
-         }
-      ),
+      .email("Please enter a valid email address")
+      .max(255, "Email must be less than 255 characters")
+      .optional(),
 
    phoneNumber: z
       .string()
-      .min(10, "Phone number must be at least 10 digits without prefix of 0")
-      .max(15, "Phone number must be less than 15 digits with prefix of 0")
+      .min(10, "Phone number must be at least 10 digits")
+      .max(15, "Phone number must be less than 15 digits")
       .regex(/^[\d\s\-\+\(\)]+$/, "Please enter a valid phone number"),
 
    image: z

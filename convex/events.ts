@@ -161,7 +161,7 @@ export const getEventRegistrations = query({
       student: v.object({
         _id: v.id("students"),
         name: v.string(),
-        email: v.string(),
+        email: v.optional(v.string()),
         phoneNumber: v.string(),
         batchYear: v.number(),
         imageUrl: v.optional(v.string()),

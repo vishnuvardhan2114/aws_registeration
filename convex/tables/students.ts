@@ -3,7 +3,7 @@ import { v } from "convex/values";
 
 export const students = defineTable({
   name: v.string(),
-  email: v.string(),
+  email: v.optional(v.string()),
   phoneNumber: v.string(),
   dateOfBirth: v.string(),
   imageStorageId: v.optional(v.id("_storage")),

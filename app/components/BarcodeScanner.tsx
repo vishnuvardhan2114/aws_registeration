@@ -448,7 +448,7 @@ const Scanner = () => {
                           {tokenData.student.name}
                         </h4>
                         <p className="text-xs text-slate-500 dark:text-slate-500">
-                          {tokenData.student.email}
+                          {tokenData.student.email || 'No email provided'}
                         </p>
                       </div>
                     </div>

@@ -3,7 +3,7 @@ export type RegistrationFormData = {
   fullName: string;
   dateOfBirth: Date;
   batch: number;
-  email: string;
+  email?: string;
   phoneNumber: string;
   image: File;
 };

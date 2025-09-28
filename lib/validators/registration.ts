@@ -26,9 +26,25 @@ export const registrationSchema = z.object({
    batch: z.number(),
    email: z
       .string()
-      .email("Please enter a valid email address")
-      .max(255, "Email must be less than 255 characters")
-      .optional(),
+      .optional()
+      .refine(
+         (email) => {
+            if (!email || email.trim() === "") return true; // Allow empty or undefined
+            return z.string().email().safeParse(email).success;
+         },
+         {
+            message: "Please enter a valid email address",
+         }
+      )
+      .refine(
+         (email) => {
+            if (!email || email.trim() === "") return true; // Allow empty or undefined
+            return email.length <= 255;
+         },
+         {
+            message: "Email must be less than 255 characters",
+         }
+      ),
 
    phoneNumber: z
       .string()

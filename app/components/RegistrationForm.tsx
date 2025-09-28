@@ -42,7 +42,7 @@ export default function RegistrationForm({
       fullName: initialValues?.fullName || '',
       dateOfBirth: initialValues?.dateOfBirth ? new Date(initialValues.dateOfBirth + 'T00:00:00') : undefined,
       batch: initialValues?.batch || undefined,
-      email: initialValues?.email || '',
+      email: initialValues?.email || undefined,
       phoneNumber: initialValues?.phoneNumber || '',
       image: null
     }
@@ -393,7 +393,7 @@ export default function RegistrationForm({
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      Email Address <span className="text-destructive">*</span>
+                      Email Address
                     </FormLabel>
                     <FormControl>
                       <Input

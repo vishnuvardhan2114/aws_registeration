@@ -323,17 +323,13 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                         <TableCell>{calculateAge(user.dateOfBirth)}</TableCell>
                         <TableCell>{user.batchYear}</TableCell>
                         <TableCell>{formatDate(user.registrationDate)}</TableCell>
-                        {
-                          user.paymentStatus !== 'exception' && (
-                            <TableCell>
-                              <Badge {...statusConfig}>
-                                {user.paymentStatus ? user.paymentStatus.charAt(0).toUpperCase() + user.paymentStatus.slice(1) : 'Unknown'}
-                              </Badge>
-                            </TableCell>
-                          )
-                        }
+                        <TableCell>
+                          <Badge {...statusConfig}>
+                            {user.paymentStatus ? user.paymentStatus.charAt(0).toUpperCase() + user.paymentStatus.slice(1) : 'Unknown'}
+                          </Badge>
+                        </TableCell>
                         <TableCell className='text-center'>
-                          {user.paymentStatus === 'pending' ? (
+                          {user.paymentStatus === 'pending' || user.paymentStatus === 'exception' ? (
                             <span className="text-gray-400 text-sm">-</span>
                           ) : (
                             <Badge>
@@ -365,13 +361,17 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          {user.paymentStatus !== 'paid' ? (
+                          {user.paymentStatus === 'pending' ? (
                             <Button
                               size="sm"
                               onClick={() => handlePaymentClick(user)}
                             >
                               <CreditCard className="h-4 w-4 mr-2" />
                               Make Payment
+                            </Button>
+                          ) : user.paymentStatus === 'exception' ? (
+                            <Button variant="ghost" size="sm" className='bg-orange-600 hover:text-white text-white hover:bg-orange-700' disabled={true}>
+                              Exception
                             </Button>
                           ) : (
                             <Button variant="ghost" size="sm" className='bg-green-600 hover:text-white text-white hover:bg-green-700' disabled={true}>Paid</Button>

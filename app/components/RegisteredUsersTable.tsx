@@ -102,7 +102,14 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
   };
 
   const formatDate = (dateString: string | number) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return 'N/A';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+    
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -110,8 +117,16 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
   };
 
   const calculateAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return 0;
+    
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
+    
+    // Check if the date is valid
+    if (isNaN(birthDate.getTime())) {
+      return 0;
+    }
+    
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
 
@@ -171,15 +186,15 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
     ];
 
     const rows = data.users.map(user => [
-      user.name || '',
-      user.contact || '',
-      calculateAge(user.dateOfBirth || '').toString(),
-      user.batchYear?.toString() || '',
+      user.name || 'N/A',
+      user.contact || 'N/A',
+      user.dateOfBirth ? calculateAge(user.dateOfBirth).toString() : 'N/A',
+      user.batchYear?.toString() || 'N/A',
       formatDate(user.registrationDate),
-      user.paymentStatus || '',
-      user.paymentMethod || '',
-      user.paymentAmount ? formatCurrency(user.paymentAmount) : '',
-      user.dateOfBirth || ''
+      user.paymentStatus || 'N/A',
+      user.paymentMethod || 'N/A',
+      user.paymentAmount ? formatCurrency(user.paymentAmount) : 'N/A',
+      user.dateOfBirth || 'N/A'
     ]);
 
     const csvContent = [
@@ -219,6 +234,15 @@ export const RegisteredUsersTable: React.FC<RegisteredUsersTableProps> = ({
   const handleExportCSV = () => {
     if (!allUsersForExport) {
       toast.error('Loading data for export... Please try again in a moment.');
+      return;
+    }
+
+    // Debug: Log the data being exported
+    console.log('Exporting data:', allUsersForExport);
+    console.log('Users count:', allUsersForExport.users?.length || 0);
+
+    if (!allUsersForExport.users || allUsersForExport.users.length === 0) {
+      toast.error('No data available for export.');
       return;
     }
 

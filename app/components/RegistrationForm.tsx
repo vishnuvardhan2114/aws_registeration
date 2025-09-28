@@ -334,7 +334,7 @@ export default function RegistrationForm({
                             }
                           }}
                           captionLayout="dropdown"
-                          fromYear={1950}
+                          fromYear={1900}
                           toYear={new Date().getFullYear()}
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")

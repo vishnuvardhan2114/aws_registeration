@@ -5,7 +5,7 @@ export type RegistrationFormData = {
   batch: number;
   email: string;
   phoneNumber: string;
-  image?: File | null;
+  image: File;
 };
 
 // Submission data type with calculated age and formatted date

@@ -37,28 +37,27 @@ export const registrationSchema = z.object({
 
    image: z
       .any()
-      .optional()
       .refine(
          (file) => {
-            if (!file) return true; // Optional field
+            if (!file) return false; // Required field
             return file instanceof File;
          },
          {
-            message: "Please upload a valid file",
+            message: "Photo is required. Please upload a valid file",
          }
       )
       .refine(
          (file) => {
-            if (!file) return true; // Optional field
+            if (!file) return false; // Required field
             return file.type.startsWith("image/");
          },
          {
-            message: "Please upload a valid image file (JPEG, PNG)",
+            message: "Please upload a valid image file",
          }
       )
       .refine(
          (file) => {
-            if (!file) return true; // Optional field
+            if (!file) return false; // Required field
             return file.size <= 5 * 1024 * 1024; // 5MB limit
          },
          {

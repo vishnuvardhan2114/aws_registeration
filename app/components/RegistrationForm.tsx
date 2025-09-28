@@ -212,14 +212,14 @@ export default function RegistrationForm({
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
                       <Camera className="h-4 w-4" />
-                      Photo
+                      Photo <span className="text-destructive">*</span>
                     </FormLabel>
                     <div className="space-y-4">
                       {!imageState.preview ? (
                         <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors">
                           <input
                             type="file"
-                            accept="image/jpeg,image/png"
+                            accept="image/*"
                             onChange={handleImageFileUpload}
                             className="hidden"
                             id="image-upload"
@@ -255,7 +255,7 @@ export default function RegistrationForm({
                               </button>
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              PNG, JPG up to 5MB
+                              All image formats up to 5MB
                             </div>
                           </div>
                         </div>

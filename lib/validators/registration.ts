@@ -27,7 +27,8 @@ export const registrationSchema = z.object({
    email: z
       .string()
       .email("Please enter a valid email address")
-      .max(255, "Email must be less than 255 characters"),
+      .max(255, "Email must be less than 255 characters")
+      .optional(),
 
    phoneNumber: z
       .string()
